@@ -1,6 +1,6 @@
 # idenLib - Library Function Identification
 
-When analyzing malware or a 3rd party software, it's challenging to identify statically linked libraries and to understand what a function from the library is doing.
+When analyzing malware or 3rd party software, it's challenging to identify statically linked libraries and to understand what a function from the library is doing.
 
 [`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib` files.
 
