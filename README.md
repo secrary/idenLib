@@ -8,6 +8,8 @@ When analyzing malware or a 3rd party software, it's challenging to identify sta
 
 [`idenLib.py`](https://github.com/secrary/IDA-scripts/tree/master/idenLib) is an `IDA Pro` plugin to identify library functions.
 
+##### Any feedback is greatly appreciated: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
+
 ## How does idenLib.exe generate signatures?
 
 1. Parse input file(`.lib` file) to get a list of function addresses and function names.
