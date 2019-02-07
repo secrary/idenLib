@@ -2,7 +2,7 @@
 
 When analyzing malware or a 3rd party software, it's challenging to identify statically linked libraries and to understand what a function from the library is doing.
 
-[`idenLib.exe`](https://secrary.com/RandomPosts/idenLib) is a tool for generating library signatures from `.lib` files.
+[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib` files.
 
 [`idenLib.dp32`](https://github.com/secrary/idenLibX) is a `x32dbg` plugin to identify library functions.
 
