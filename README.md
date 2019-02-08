@@ -8,8 +8,6 @@ When analyzing malware or 3rd party software, it's challenging to identify stati
 
 [`idenLib.py`](https://github.com/secrary/IDA-scripts/tree/master/idenLib) is an `IDA Pro` plugin to identify library functions.
 
-# NOTE:
-At this moment plugins do not work, they use the previous version of signatures, I'll update them soon.
 
 ##### Any feedback is greatly appreciated: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
 
