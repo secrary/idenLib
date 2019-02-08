@@ -8,13 +8,10 @@
 
 void ProcessFile(const fs::path& sPath);
 
-int main()
+int main(int argc, char *argv[])
 {
-	int nArgs{};
-	const auto pArgv = CommandLineToArgvW(GetCommandLine(), &nArgs);
-	if (!pArgv)
-		return STATUS_UNSUCCESSFUL;
-	if (nArgs < 2)
+
+	if (argc < 2)
 	{
 		printf(
 			"Usage: \n\
@@ -25,7 +22,7 @@ int main()
 		return STATUS_UNSUCCESSFUL;
 	}
 
-	fs::path sPath{ pArgv[1] };
+	fs::path sPath{ argv[1] };
 
 
 	if (!exists(sPath))
@@ -59,9 +56,9 @@ int main()
 				{
 					continue;
 				}
-				if (nArgs == 3)
+				if (argc == 3)
 				{
-					if (std::wstring::npos != currentPath.filename().wstring().find(pArgv[2]))
+					if (std::wstring::npos != currentPath.filename().string().find(argv[2]))
 					{
 						ProcessFile(currentPath);
 					}
@@ -110,24 +107,26 @@ void ProcessArchiveFile(const fs::path& sPath)
 	}
 	inputFile.close(); // close handle
 
-	auto hashVar = Md5Hash();
-	if (!NT_SUCCESS(hashVar.Status))
-	{
-		printf("[!] ERROR: %lx HASH_CTR \n", hashVar.Status);
-		return;
-	}
-
-	userContext.pHash = &hashVar;
 	userContext.Dirty = false;
 
 	if (lib.GetSignature(&userContext) && userContext.Dirty)
 	{
-		std::wofstream outputFile(sigPath, std::ios::beg); // overwrite
+		fs::path sigPathTmp = sigPath;
+		sigPathTmp += L".tmp";
+		std::wofstream outputFile(sigPathTmp, std::ios::beg); // overwrite
 		for (const auto& n : userContext.UniqHashFuncName)
 		{
 			outputFile << n.first << " " << n.second << "\n";
 		}
-		wprintf(L"Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
+		outputFile.close();
+
+		if (compressFile(sigPathTmp, sigPath)) {
+			wprintf(L"Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
+		}
+		else {
+			wprintf(L"[idenLib] compression failed\n");
+		}
+		fs::remove(sigPathTmp);
 	}
 	else
 	{

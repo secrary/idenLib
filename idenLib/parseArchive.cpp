@@ -181,24 +181,23 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 						codeSize = MAX_FUNC_SIZE;
 					}
 
-					PBYTE opcodesBuf = nullptr;
-					ULONG sizeOfBuf{};
-					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf,
-						sizeOfBuf) && opcodesBuf)
-					{
-						const auto funcHash = userContext->pHash->HashData(opcodesBuf, sizeOfBuf);
+					PCHAR opcodesBuf = nullptr;
 
-						// TODO: UnDecorate ???
+					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
+					{
+
 						std::string sName{ fnName };
 						const std::wstring wName{ sName.begin(), sName.end() };
 						//if (wName.find(L"test") != std::wstring::npos) { // test func
 						//	wprintf(L"%s %s\n", funcHash, wName.c_str());
 						//}
 
-						userContext->UniqHashFuncName[funcHash] = wName;
+						std::string cOpcodes{ opcodesBuf };
+						std::wstring wOpcodes {cOpcodes.begin(), cOpcodes.end()};
+
+						userContext->UniqHashFuncName[wOpcodes] = wName;
 						userContext->Dirty = true;
 
-						HeapFree(GetProcessHeap(), 0, funcHash);
 						free(opcodesBuf);
 					}
 				}
