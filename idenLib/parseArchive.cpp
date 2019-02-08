@@ -148,17 +148,10 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 	{
 		const auto imageSectionHeader = sectionHeaders[i - 1];
 		const auto cbVirtual = imageSectionHeader.SizeOfRawData;
-		saveLoc = ftell(this->hFile);
-		const auto pbRawData = static_cast<byte*>(malloc(cbVirtual));
-		if (!pbRawData)
-			return;
-		if (pbRawData && imageSectionHeader.PointerToRawData != 0 && cbVirtual != 0 && (
+
+		if (imageSectionHeader.PointerToRawData != 0 && cbVirtual != 0 && (
 			imageSectionHeader.Characteristics & IMAGE_SCN_CNT_CODE))
 		{
-			fseek(this->hFile, this->MemberSeekBase + imageSectionHeader.PointerToRawData, SEEK_SET);
-			fread(pbRawData, cbVirtual, 1, this->hFile);
-			fseek(this->hFile, saveLoc, SEEK_SET);
-
 			// disassemble code
 			const auto numberOfSymbols = imageFileHdr.NumberOfSymbols;
 			for (size_t j = 0; j < numberOfSymbols; ++j)
@@ -203,7 +196,6 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 				}
 			}
 		}
-		free(pbRawData);
 	}
 
 	free(symbols);
