@@ -8,8 +8,6 @@ When analyzing malware or 3rd party software, it's challenging to identify stati
 
 [`idenLib.py`](https://github.com/secrary/IDA-scripts/tree/master/idenLib) is an `IDA Pro` plugin to identify library functions.
 
-# NOTE:
-At this moment plugins do not work, they use the previous version of signatures, I'll update them soon.
 
 ##### Any feedback is greatly appreciated: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
 
@@ -48,6 +46,8 @@ Inside of a signature (it's compressed):
 
 
 Only `x86` is supported (adding `x64` should be trivial).
+
+Tested on `Windows 10 17763.292`
 
 ## Useful links:
 - Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features);
