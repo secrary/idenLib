@@ -15,6 +15,7 @@
 #include "disassamble.h"
 #include "parseArchive.h"
 #include "compression.h"
+#define ZSTD_STATIC_LINKING_ONLY // ZSTD_findDecompressedSize
 
 namespace fs = std::filesystem;
 
@@ -35,6 +36,6 @@ void Split(__in const std::string& str, __out std::vector<std::string>& cont);
 
 typedef struct _USER_CONTEXT
 {
-	std::unordered_map<std::wstring, std::wstring> UniqHashFuncName;
+	std::unordered_map<std::wstring, std::wstring> funcSignature;
 	bool Dirty;
 } USER_CONTEXT, *PUSER_CONTEXT;

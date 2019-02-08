@@ -182,20 +182,20 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					}
 
 					PCHAR opcodesBuf = nullptr;
+					std::string sName{ fnName };
 
 					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
 					{
 
-						std::string sName{ fnName };
 						const std::wstring wName{ sName.begin(), sName.end() };
 						//if (wName.find(L"test") != std::wstring::npos) { // test func
-						//	wprintf(L"%s %s\n", funcHash, wName.c_str());
+						//	wprintf(L"%s\n", wName.c_str());
 						//}
 
 						std::string cOpcodes{ opcodesBuf };
 						std::wstring wOpcodes {cOpcodes.begin(), cOpcodes.end()};
 
-						userContext->UniqHashFuncName[wOpcodes] = wName;
+						userContext->funcSignature[wOpcodes] = wName;
 						userContext->Dirty = true;
 
 						free(opcodesBuf);

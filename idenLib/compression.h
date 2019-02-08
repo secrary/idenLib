@@ -9,4 +9,6 @@ namespace fs = std::filesystem;
 
 #define DEFAULT_COMPRESS_LEVEL 3
 
-bool compressFile(fs::path& sigPathTmp, fs::path sigPath);
+bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath);
+
+bool DecompressFile(fs::path & sigPath, PBYTE &decompressedData);

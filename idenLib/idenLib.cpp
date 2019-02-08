@@ -1,7 +1,6 @@
 //
 // author: Lasha Khasaia
 // contact: @_qaz_qaz
-// license: MIT License
 //
 
 #include "utils.h"
@@ -88,24 +87,38 @@ void ProcessArchiveFile(const fs::path& sPath)
 	sigPath += L"\\";
 	sigPath += fileName;
 	sigPath += L".sig";
-	std::ifstream inputFile(sigPath.string().c_str());
-	std::string line;
-	while (std::getline(inputFile, line))
+
+	if (exists(sigPath))
 	{
-		std::vector<std::string> vec{};
-		Split(line, vec);
-		if (vec.size() != 2)
+		PBYTE decompressedData{};
+		if (!DecompressFile(sigPath, decompressedData) || !decompressedData)
 		{
-			wprintf(L"[!] SIG file contains a malformed data, SIGpath: %s\n", sigPath.c_str());
+			wprintf_s(L"[idenLib] failed to decompress the file: %s\n", sigPath.c_str());
 			return;
 		}
-		// vec[0] md5_hash
-		// vec[1] name
-		std::wstring wHashStr(vec[0].begin(), vec[0].end());
-		std::wstring wNameStr(vec[1].begin(), vec[1].end());
-		userContext.UniqHashFuncName[wHashStr] = wNameStr;
+		char seps[] = "\n";
+		char* next_token = nullptr;
+		char* line = strtok_s(reinterpret_cast<char*>(decompressedData), seps, &next_token);
+		while(line != nullptr)
+		{
+			std::vector<std::string> vec{};
+			Split(line, vec);
+			if (vec.size() != 2)
+			{
+				wprintf(L"[!] SIG file contains a malformed data, SIG path: %s\n", sigPath.c_str());
+				return;
+			}
+			// vec[0] opcode
+			// vec[1] name
+			std::wstring wOpcodeStr(vec[0].begin(), vec[0].end());
+			std::wstring wNameStr(vec[1].begin(), vec[1].end());
+			userContext.funcSignature[wOpcodeStr] = wNameStr;
+			line = strtok_s(nullptr, seps, &next_token);
+		}
+
+		if (decompressedData)
+			delete[] decompressedData;
 	}
-	inputFile.close(); // close handle
 
 	userContext.Dirty = false;
 
@@ -113,14 +126,18 @@ void ProcessArchiveFile(const fs::path& sPath)
 	{
 		fs::path sigPathTmp = sigPath;
 		sigPathTmp += L".tmp";
-		std::wofstream outputFile(sigPathTmp, std::ios::beg); // overwrite
-		for (const auto& n : userContext.UniqHashFuncName)
+		if (fs::exists(sigPathTmp))
 		{
-			outputFile << n.first << " " << n.second << "\n";
+			fs::remove(sigPathTmp);
+		}
+		std::wofstream outputFile(sigPathTmp, std::ios::beg); // overwrite
+		for (const auto& n : userContext.funcSignature)
+		{
+			outputFile << n.first << " " << n.second << std::endl;
 		}
 		outputFile.close();
 
-		if (compressFile(sigPathTmp, sigPath)) {
+		if (CompressFile(sigPathTmp, sigPath)) {
 			wprintf(L"Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
 		}
 		else {
