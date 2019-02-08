@@ -46,7 +46,8 @@ Inside of a signature (it's compressed):
 
 
 Only `x86` is supported (adding `x64` should be trivial).
-Test on `Windows 10 17763.292`
+
+Tested on `Windows 10 17763.292`
 
 ## Useful links:
 - Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features);
