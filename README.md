@@ -8,24 +8,26 @@ When analyzing malware or 3rd party software, it's challenging to identify stati
 
 [`idenLib.py`](https://github.com/secrary/IDA-scripts/tree/master/idenLib) is an `IDA Pro` plugin to identify library functions.
 
+# NOTE:
+At this moment plugins do not work, they use the previous version of signatures, I'll update them soon.
+
 ##### Any feedback is greatly appreciated: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
 
 ## How does idenLib.exe generate signatures?
 
 1. Parse input file(`.lib` file) to get a list of function addresses and function names.
-2. Get the last opcode from each instruction and generate `MD5` hash from it (you can change the hashing algorithm).
+2. Get the last opcode from each instruction
 
 ![sig](https://user-images.githubusercontent.com/16405698/52433535-35442500-2b05-11e9-92a2-7ed0dfb319ab.png)
 
-3. Save the signature under the `SymEx` directory, if the input filename is `zlib.lib`, the output will be `zlib.lib.sig`,
+3. Compress the signature with [zstd](https://github.com/facebook/zstd)
+
+4. Save the signature under the `SymEx` directory, if the input filename is `zlib.lib`, the output will be `zlib.lib.sig`,
 if `zlib.lib.sig` already exists under the `SymEx` directory from a previous execution or from the previous version of the library, the next execution will append different signatures.
 If you execute `idenLib.exe` several times with different version of the `.lib` file, the `.sig` file will include all unique function signatures.
 
-Signature file format:
-
-`hash function_name`
-
-![content](https://user-images.githubusercontent.com/16405698/52433838-e945b000-2b05-11e9-9d72-0a07368dc102.PNG)
+Inside of a signature (it's compressed):
+![signature](https://user-images.githubusercontent.com/16405698/52490971-e9a18200-2bbd-11e9-8d29-e85a71826c8f.png)
 
 ## Generating library signatures
 
@@ -52,4 +54,5 @@ Only `x86` is supported (adding `x64` should be trivial).
 
 ## Credits
 - Disassembly powered by [Zydis](https://zydis.re)
+- Compression/Decompression by [zstd](https://github.com/facebook/zstd)
 - Icon by [freepik](https://www.flaticon.com/authors/freepik)
