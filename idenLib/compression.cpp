@@ -37,6 +37,9 @@ bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath)
 		return false;
 	}
 	fwrite(cBuff, 1, cSize, hFile);
+
+	delete[] cBuff;
+	delete[] fBuff;
 	fclose(hFile);
 
 	return true;

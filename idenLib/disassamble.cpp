@@ -29,6 +29,8 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 		offset += instruction.length;
 	}
 	opcodesBuf = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
+	if (!opcodesBuf)
+		return false;
 
 	return counter != 0;
 }

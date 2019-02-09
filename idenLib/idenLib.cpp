@@ -143,7 +143,8 @@ void ProcessArchiveFile(const fs::path& sPath)
 		else {
 			wprintf(L"[idenLib] compression failed\n");
 		}
-		fs::remove(sigPathTmp);
+		if (fs::exists(sigPathTmp))
+			fs::remove(sigPathTmp);
 	}
 	else
 	{
