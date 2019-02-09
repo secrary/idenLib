@@ -36,6 +36,6 @@ void Split(__in const std::string& str, __out std::vector<std::string>& cont);
 
 typedef struct _USER_CONTEXT
 {
-	std::unordered_map<std::wstring, std::wstring> funcSignature;
+	std::unordered_map<std::string, std::string> funcSignature;
 	bool Dirty;
 } USER_CONTEXT, *PUSER_CONTEXT;

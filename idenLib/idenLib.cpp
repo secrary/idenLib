@@ -9,7 +9,6 @@ void ProcessFile(const fs::path& sPath);
 
 int main(int argc, char *argv[])
 {
-
 	if (argc < 2)
 	{
 		printf(
@@ -78,12 +77,10 @@ int main(int argc, char *argv[])
 void ProcessArchiveFile(const fs::path& sPath)
 {
 	Lib lib{ sPath };
-
 	USER_CONTEXT userContext{};
 
-	// open SIG file, if kernel32.dll =>> kernel32.dll.sig
-	auto fileName = sPath.filename();
-	fs::path sigPath{ symExPath };
+	const auto fileName = sPath.filename();
+	auto sigPath{ symExPath };
 	sigPath += L"\\";
 	sigPath += fileName;
 	sigPath += L".sig";
@@ -110,14 +107,12 @@ void ProcessArchiveFile(const fs::path& sPath)
 			}
 			// vec[0] opcode
 			// vec[1] name
-			std::wstring wOpcodeStr(vec[0].begin(), vec[0].end());
-			std::wstring wNameStr(vec[1].begin(), vec[1].end());
-			userContext.funcSignature[wOpcodeStr] = wNameStr;
+			userContext.funcSignature[vec[0]] = vec[1];
 			line = strtok_s(nullptr, seps, &next_token);
 		}
 
-		if (decompressedData)
-			delete[] decompressedData;
+
+		delete[] decompressedData;
 	}
 
 	userContext.Dirty = false;
@@ -130,12 +125,22 @@ void ProcessArchiveFile(const fs::path& sPath)
 		{
 			fs::remove(sigPathTmp);
 		}
-		std::wofstream outputFile(sigPathTmp, std::ios::beg); // overwrite
+
+		FILE* hFile = nullptr;
+		fopen_s(&hFile, sigPathTmp.string().c_str(), "wb");
+		if (!hFile)
+		{
+			printf("[idenLib] failed to create sig file: %s\n", sigPath.string().c_str());
+			return;
+		}
 		for (const auto& n : userContext.funcSignature)
 		{
-			outputFile << n.first << " " << n.second << std::endl;
+			const auto bothSize = n.first.size() + n.second.size() + 3; // space + \n + 0x00
+			const auto opcodesName = new CHAR[bothSize];
+			sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
+			fwrite(opcodesName, bothSize, 1, hFile);
 		}
-		outputFile.close();
+		fclose(hFile);
 
 		if (CompressFile(sigPathTmp, sigPath)) {
 			wprintf(L"Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());

@@ -180,15 +180,13 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
 					{
 
-						const std::wstring wName{ sName.begin(), sName.end() };
-						//if (wName.find(L"test") != std::wstring::npos) { // test func
-						//	wprintf(L"%s\n", wName.c_str());
+						//if (sName.find("test") != std::string::npos) { // test func
+						//	wprintf(L"%s\n", sName.c_str());
 						//}
 
 						std::string cOpcodes{ opcodesBuf };
-						std::wstring wOpcodes {cOpcodes.begin(), cOpcodes.end()};
 
-						userContext->funcSignature[wOpcodes] = wName;
+						userContext->funcSignature[cOpcodes] = sName;
 						userContext->Dirty = true;
 
 						free(opcodesBuf);
