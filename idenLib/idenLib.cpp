@@ -83,7 +83,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 	auto sigPath{ symExPath };
 	sigPath += L"\\";
 	sigPath += fileName;
-	sigPath += L".sig";
+	sigPath += SIG_EXT;
 
 	if (exists(sigPath))
 	{
