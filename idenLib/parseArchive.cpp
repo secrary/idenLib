@@ -177,12 +177,12 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					PCHAR opcodesBuf = nullptr;
 					std::string sName{ fnName };
 
+					//if (sName.find("test") != std::string::npos) { // test func
+					//	printf("%s\n", sName.c_str());
+					//}
+
 					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
 					{
-
-						//if (sName.find("test") != std::string::npos) { // test func
-						//	wprintf(L"%s\n", sName.c_str());
-						//}
 
 						std::string cOpcodes{ opcodesBuf };
 

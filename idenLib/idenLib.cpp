@@ -138,7 +138,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 			const auto bothSize = n.first.size() + n.second.size() + 3; // space + \n + 0x00
 			const auto opcodesName = new CHAR[bothSize];
 			sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
-			fwrite(opcodesName, bothSize, 1, hFile);
+			fwrite(opcodesName, bothSize - 1 , 1, hFile); // -1 without 0x00
 		}
 		fclose(hFile);
 
