@@ -1,0 +1,6 @@
+[submodule "idenLib/dependencies/zydis"]
+	path = idenLib/dependencies/zydis
+	url = https://github.com/zyantific/zydis
+[submodule "idenLib/dependencies/zstd"]
+	path = idenLib/dependencies/zstd
+	url = https://github.com/facebook/zstd
