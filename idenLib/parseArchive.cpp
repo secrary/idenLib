@@ -165,6 +165,13 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					const auto fnName = symbols[j].N.Name.Short
 						? reinterpret_cast<char*>(symbols[j].N.ShortName)
 						: (stringTable + symbols[j].N.Name.Long);
+
+					std::string sName{ fnName };
+
+					//if (sName.find("ZydisDecoderInit") != std::string::npos) { // test func
+					//	printf("%s\n", sName.c_str());
+					//}
+
 					const auto code = currentObjectStart + imageSectionHeader.PointerToRawData + symbols[j].Value;
 					auto codeSize = imageSectionHeader.SizeOfRawData - symbols[j].Value;
 					if (codeSize < MIN_FUNC_SIZE)
@@ -175,11 +182,6 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					}
 
 					PCHAR opcodesBuf = nullptr;
-					std::string sName{ fnName };
-
-					//if (sName.find("test") != std::string::npos) { // test func
-					//	printf("%s\n", sName.c_str());
-					//}
 
 					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
 					{

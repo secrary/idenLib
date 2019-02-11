@@ -4,9 +4,9 @@ When analyzing malware or 3rd party software, it's challenging to identify stati
 
 [`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib` files.
 
-[`idenLib.dp32`](https://github.com/secrary/idenLibX) is a `x32dbg` plugin to identify library functions.
+[`idenLib.dp32`/`idenLib.dp64`](https://github.com/secrary/idenLibX) is a [`x32dbg`/`x64dbg`](https://x64dbg.com) plugin to identify library functions.
 
-[`idenLib.py`](https://github.com/secrary/IDA-scripts/tree/master/idenLib) is an `IDA Pro` plugin to identify library functions.
+[`idenLib.py`](https://github.com/secrary/IDA-scripts/tree/master/idenLib) is an [`IDA Pro`](https://www.hex-rays.com/products/ida/index.shtml) plugin to identify library functions.
 
 
 ##### Any feedback is greatly appreciated: [@_qaz_qaz](https://twitter.com/_qaz_qaz)
@@ -31,22 +31,20 @@ Inside of a signature (it's compressed):
 
 ![lib](https://user-images.githubusercontent.com/16405698/52433541-35dcbb80-2b05-11e9-918a-6d39afc5de91.gif)
 
-## `x32dbg`, `IDAPro` plugin usage:
+## [`x32dbg`/`x64dbg`](https://x64dbg.com), [`IDA Pro`](https://www.hex-rays.com/products/ida/index.shtml) plugin usage:
 
-1. Copy `SymEx` directory under `x32dbg`/`IDA Pro`'s main directory
+1. Copy `SymEx` directory under `x32dbg`/`x64dbg`/`IDA Pro`'s main directory
 2. Apply signatures:
 
-`x32dbg`:
+[`x32dbg`/`x64dbg`](https://github.com/secrary/idenLibX):
 
 ![xdb](https://user-images.githubusercontent.com/16405698/52433536-35442500-2b05-11e9-990e-8d4889bfe1c6.gif)
 
-`IDAPro`:
+[`IDA Pro`](https://github.com/secrary/IDA-scripts/tree/master/idenLib):
 
 ![ida_boost_2](https://user-images.githubusercontent.com/16405698/52433540-35dcbb80-2b05-11e9-9dd3-9bb44d678ea5.gif)
 
-
-Only `x86` is supported (adding `x64` should be trivial).
-
+Supports [`x86`](https://en.wikipedia.org/wiki/X86) and [`AMD64/x86-64`](https://en.wikipedia.org/wiki/X86-64) architectures.
 
 ## Useful links:
 - Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features);

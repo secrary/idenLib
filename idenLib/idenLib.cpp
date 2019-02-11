@@ -12,7 +12,8 @@ int main(int argc, char *argv[])
 	if (argc < 2)
 	{
 		printf(
-			"Usage: \n\
+			"idenLib - Library Function Identification\n\
+		Usage: \n\
 		./idenLib.exe /path/to/sample\n\
 		./idenLib.exe /path/to/dir\n\
 		./idenLib.exe /path/to/dir filename\
@@ -25,7 +26,7 @@ int main(int argc, char *argv[])
 
 	if (!exists(sPath))
 	{
-		wprintf(L"[!] Invalid path: %s\n", sPath.c_str());
+		fwprintf(stderr, L"[idenLib - FAILED] Invalid path: %s\n", sPath.c_str());
 		return STATUS_UNSUCCESSFUL;
 	}
 
@@ -90,7 +91,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 		PBYTE decompressedData{};
 		if (!DecompressFile(sigPath, decompressedData) || !decompressedData)
 		{
-			wprintf_s(L"[idenLib] failed to decompress the file: %s\n", sigPath.c_str());
+			fwprintf_s(stderr, L"[idenLib - FAILED] failed to decompress the file: %s\n", sigPath.c_str());
 			return;
 		}
 		char seps[] = "\n";
@@ -102,7 +103,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 			Split(line, vec);
 			if (vec.size() != 2)
 			{
-				wprintf(L"[!] SIG file contains a malformed data, SIG path: %s\n", sigPath.c_str());
+				fwprintf(stderr, L"[idenLib - FAILED] SIG file contains a malformed data, SIG path: %s\n", sigPath.c_str());
 				return;
 			}
 			// vec[0] opcode
@@ -130,7 +131,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 		fopen_s(&hFile, sigPathTmp.string().c_str(), "wb");
 		if (!hFile)
 		{
-			printf("[idenLib] failed to create sig file: %s\n", sigPath.string().c_str());
+			fwprintf(stderr, L"[idenLib - FAILED] failed to create sig file: %s\n", sigPath.c_str());
 			return;
 		}
 		for (const auto& n : userContext.funcSignature)
@@ -143,17 +144,17 @@ void ProcessArchiveFile(const fs::path& sPath)
 		fclose(hFile);
 
 		if (CompressFile(sigPathTmp, sigPath)) {
-			wprintf(L"Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
+			wprintf(L"[idenLib] Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
 		}
 		else {
-			wprintf(L"[idenLib] compression failed\n");
+			fwprintf(stderr, L"[idenLib - FAILED] compression failed\n");
 		}
 		if (fs::exists(sigPathTmp))
 			fs::remove(sigPathTmp);
 	}
 	else
 	{
-		printf("No SIG file for : %s (maybe no functions)\n", sPath.string().c_str());
+		printf("[idenLib - INFO] No SIG file for : %s (maybe no functions)\n", sPath.string().c_str());
 	}
 
 	if (exists(sigPath) && is_empty(sigPath))
