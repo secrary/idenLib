@@ -13,16 +13,16 @@ When analyzing malware or 3rd party software, it's challenging to identify stati
 
 ## How does idenLib.exe generate signatures?
 
-1. Parse input file(`.lib` file) to get a list of function addresses and function names.
-2. Get the last opcode from each instruction
+1. Parses input file(`.lib` file) to get a list of function addresses and function names.
+2. Gets the last opcode from each instruction
 
 ![sig](https://user-images.githubusercontent.com/16405698/52433535-35442500-2b05-11e9-92a2-7ed0dfb319ab.png)
 
-3. Compress the signature with [zstd](https://github.com/facebook/zstd)
+3. Compresses the signature with [zstd](https://github.com/facebook/zstd)
 
-4. Save the signature under the `SymEx` directory, if the input filename is `zlib.lib`, the output will be `zlib.lib.sig`,
-if `zlib.lib.sig` already exists under the `SymEx` directory from a previous execution or from the previous version of the library, the next execution will append different signatures.
-If you execute `idenLib.exe` several times with different version of the `.lib` file, the `.sig` file will include all unique function signatures.
+4. Saves the signature under the `SymEx` directory, if the input filename is `zlib.lib`, the output will be `zlib.lib.sig` or `zlib.lib.sig64`,
+if `zlib.lib.sig(64)` already exists under the `SymEx` directory from a previous execution or from the previous version of the library, the next execution will append different signatures.
+If you execute `idenLib.exe` several times with different version of the `.lib` file, the `.sig`/`sig64` file will include all unique function signatures.
 
 Inside of a signature (it's compressed):
 ![signature](https://user-images.githubusercontent.com/16405698/52490971-e9a18200-2bbd-11e9-8d29-e85a71826c8f.png)
