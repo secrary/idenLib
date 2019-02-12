@@ -41,9 +41,8 @@ namespace fs = std::filesystem;
 #endif
 
 
-inline fs::path symExPath{ "SymEx" };
-inline fs::path pdbDirName{ "symbols" };
-
+inline fs::path symExPath{"SymEx"};
+inline fs::path pdbDirName{"symbols"};
 
 
 void Split(__in const std::string& str, __out std::vector<std::string>& cont);

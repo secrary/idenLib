@@ -7,7 +7,7 @@
 
 void ProcessFile(const fs::path& sPath);
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	if (argc < 2)
 	{
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
 		return STATUS_UNSUCCESSFUL;
 	}
 
-	fs::path sPath{ argv[1] };
+	fs::path sPath{argv[1]};
 
 
 	if (!exists(sPath))
@@ -77,11 +77,11 @@ int main(int argc, char *argv[])
 
 void ProcessArchiveFile(const fs::path& sPath)
 {
-	Lib lib{ sPath };
+	Lib lib{sPath};
 	USER_CONTEXT userContext{};
 
 	const auto fileName = sPath.filename();
-	auto sigPath{ symExPath };
+	auto sigPath{symExPath};
 	sigPath += L"\\";
 	sigPath += fileName;
 	sigPath += SIG_EXT;
@@ -97,13 +97,14 @@ void ProcessArchiveFile(const fs::path& sPath)
 		char seps[] = "\n";
 		char* next_token = nullptr;
 		char* line = strtok_s(reinterpret_cast<char*>(decompressedData), seps, &next_token);
-		while(line != nullptr)
+		while (line != nullptr)
 		{
 			std::vector<std::string> vec{};
 			Split(line, vec);
 			if (vec.size() != 2)
 			{
-				fwprintf(stderr, L"[idenLib - FAILED] SIG file contains a malformed data, SIG path: %s\n", sigPath.c_str());
+				fwprintf(stderr, L"[idenLib - FAILED] SIG file contains a malformed data, SIG path: %s\n",
+				         sigPath.c_str());
 				return;
 			}
 			// vec[0] opcode
@@ -122,7 +123,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 	{
 		fs::path sigPathTmp = sigPath;
 		sigPathTmp += L".tmp";
-		if (fs::exists(sigPathTmp))
+		if (exists(sigPathTmp))
 		{
 			fs::remove(sigPathTmp);
 		}
@@ -139,18 +140,20 @@ void ProcessArchiveFile(const fs::path& sPath)
 			const auto bothSize = n.first.size() + n.second.size() + 3; // space + \n + 0x00
 			const auto opcodesName = new CHAR[bothSize];
 			sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
-			fwrite(opcodesName, bothSize - 1 , 1, hFile); // -1 without 0x00
+			fwrite(opcodesName, bothSize - 1, 1, hFile); // -1 without 0x00
 			delete[] opcodesName;
 		}
 		fclose(hFile);
 
-		if (CompressFile(sigPathTmp, sigPath)) {
+		if (CompressFile(sigPathTmp, sigPath))
+		{
 			wprintf(L"[idenLib] Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
 		}
-		else {
+		else
+		{
 			fwprintf(stderr, L"[idenLib - FAILED] compression failed\n");
 		}
-		if (fs::exists(sigPathTmp))
+		if (exists(sigPathTmp))
 			fs::remove(sigPathTmp);
 	}
 	else

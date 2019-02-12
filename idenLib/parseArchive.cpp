@@ -102,7 +102,8 @@ bool Lib::GetSignature(LPVOID pUserContext)
 		if (!imageFileHdr.Machine) // should we check?
 			continue;
 		DisasmObjCode(imageFileHdr, currentObjectStart, pUserContext);
-	} while (this->MemberSeekBase + this->MemberSize + 1 < this->FileLength);
+	}
+	while (this->MemberSeekBase + this->MemberSize + 1 < this->FileLength);
 
 
 	return true;
@@ -121,7 +122,7 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 	const auto userContext = static_cast<PUSER_CONTEXT>(pUserContext);
 	auto saveLoc = ftell(this->hFile);
 	fseek(this->hFile, this->MemberSeekBase +
-		imageFileHdr.PointerToSymbolTable, SEEK_SET);
+	      imageFileHdr.PointerToSymbolTable, SEEK_SET);
 	if (!imageFileHdr.NumberOfSymbols)
 		return;
 	const auto symbols = static_cast<PIMAGE_SYMBOL>(malloc(imageFileHdr.NumberOfSymbols * sizeof(IMAGE_SYMBOL)));
@@ -160,13 +161,13 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					(symbols[j].StorageClass == IMAGE_SYM_CLASS_EXTERNAL ||
 						symbols[j].StorageClass == IMAGE_SYM_CLASS_STATIC ||
 						symbols[j].StorageClass == IMAGE_SYM_CLASS_LABEL) && ISFCN(symbols[j].Type)
-					) // current section and function
+				) // current section and function
 				{
 					const auto fnName = symbols[j].N.Name.Short
-						? reinterpret_cast<char*>(symbols[j].N.ShortName)
-						: (stringTable + symbols[j].N.Name.Long);
+						                    ? reinterpret_cast<char*>(symbols[j].N.ShortName)
+						                    : (stringTable + symbols[j].N.Name.Long);
 
-					std::string sName{ fnName };
+					std::string sName{fnName};
 
 					//if (sName.find("ZydisDecoderInit") != std::string::npos) { // test func
 					//	printf("%s\n", sName.c_str());
@@ -185,8 +186,7 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 
 					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
 					{
-
-						std::string cOpcodes{ opcodesBuf };
+						std::string cOpcodes{opcodesBuf};
 
 						userContext->funcSignature[cOpcodes] = sName;
 						userContext->Dirty = true;
