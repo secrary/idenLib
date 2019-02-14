@@ -4,7 +4,8 @@ bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath)
 {
 	FILE* hFile = nullptr;
 	fopen_s(&hFile, sigPathTmp.string().c_str(), "rb");
-	if (!hFile) {
+	if (!hFile)
+	{
 		fprintf(stderr, "[idenLib - FAILED] failed to open: %s \n", sigPathTmp.string().c_str());
 		return false;
 	}
@@ -23,7 +24,8 @@ bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath)
 	const auto cBuff = new BYTE[cBufSize];
 	// compress data
 	const auto cSize = ZSTD_compress(cBuff, cBufSize, fBuff, fSize, DEFAULT_COMPRESS_LEVEL);
-	if (ZSTD_isError(cSize)) {
+	if (ZSTD_isError(cSize))
+	{
 		fprintf(stderr, "[idenLib - FAILED] error compressing: %s \n", ZSTD_getErrorName(cSize));
 		delete[] cBuff;
 		delete[] fBuff;
@@ -31,12 +33,13 @@ bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath)
 	}
 	fclose(hFile);
 
-	if (fs::exists(sigPath))
+	if (exists(sigPath))
 	{
 		fs::remove(sigPath);
 	}
 	fopen_s(&hFile, sigPath.string().c_str(), "wb");
-	if (!hFile) {
+	if (!hFile)
+	{
 		fprintf(stderr, "[idenLib - FAILED] failed to open: %s \n", sigPath.string().c_str());
 		delete[] cBuff;
 		delete[] fBuff;
@@ -52,11 +55,12 @@ bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath)
 }
 
 _Success_(return)
-bool DecompressFile(fs::path & sigPath, PBYTE &decompressedData)
+
+bool DecompressFile(fs::path& sigPath, PBYTE& decompressedData)
 {
-	FILE *hFile = nullptr;
+	FILE* hFile = nullptr;
 	fopen_s(&hFile, sigPath.string().c_str(), "rb");
-	if(!hFile)
+	if (!hFile)
 	{
 		fwprintf(stderr, L"[idenLib - FAILED] failed to open the file: %s\n", sigPath.c_str());
 		return false;
@@ -75,15 +79,18 @@ bool DecompressFile(fs::path & sigPath, PBYTE &decompressedData)
 	fread(cBuff, 1, cSize, hFile);
 	// decompressed size
 	const auto rSize = ZSTD_findDecompressedSize(cBuff, cSize);
-	if (rSize == ZSTD_CONTENTSIZE_ERROR) {
+	if (rSize == ZSTD_CONTENTSIZE_ERROR)
+	{
 		fwprintf(stderr, L"[idenLib - FAILED] %s : it was not compressed by zstd.\n", sigPath.c_str());
 		delete[] cBuff;
 		fclose(hFile);
 		return false;
 	}
-	if (rSize == ZSTD_CONTENTSIZE_UNKNOWN) {
+	if (rSize == ZSTD_CONTENTSIZE_UNKNOWN)
+	{
 		fwprintf(stderr,
-		        L"[idenLib - FAILED] %s : original size unknown. Use streaming decompression instead.\n", sigPath.c_str());
+		         L"[idenLib - FAILED] %s : original size unknown. Use streaming decompression instead.\n",
+		         sigPath.c_str());
 		delete[] cBuff;
 		fclose(hFile);
 		return false;
@@ -97,8 +104,10 @@ bool DecompressFile(fs::path & sigPath, PBYTE &decompressedData)
 	}
 	auto const dSize = ZSTD_decompress(decompressedData, rSize, cBuff, cSize);
 
-	if (dSize != rSize) {
-		fprintf(stderr, "[idenLib - FAILED] error decoding %s : %s \n", sigPath.string().c_str(), ZSTD_getErrorName(dSize));
+	if (dSize != rSize)
+	{
+		fprintf(stderr, "[idenLib - FAILED] error decoding %s : %s \n", sigPath.string().c_str(),
+		        ZSTD_getErrorName(dSize));
 		delete[] cBuff;
 		fclose(hFile);
 		return false;

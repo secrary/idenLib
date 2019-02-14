@@ -21,7 +21,7 @@ public:
 	Lib() = delete;
 	Lib(const fs::path& libPath);
 	_Success_(return)
-		bool GetSignature(LPVOID pUserContext);
+	bool GetSignature(LPVOID pUserContext);
 
 	~Lib();
 };

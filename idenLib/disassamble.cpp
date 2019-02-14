@@ -1,6 +1,7 @@
 #include "disassamble.h"
 
 _Success_(return)
+
 bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf)
 {
 	ZydisDecoder decoder;
@@ -17,7 +18,7 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 		return false;
 	}
 	SIZE_T counter = 0;
-	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
+	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
 		&instruction)))
 	{
 		CHAR opcode[3];

@@ -9,4 +9,4 @@ namespace fs = std::filesystem;
 
 bool CompressFile(fs::path& sigPathTmp, const fs::path& sigPath);
 
-bool DecompressFile(fs::path & sigPath, PBYTE &decompressedData);
+bool DecompressFile(fs::path& sigPath, PBYTE& decompressedData);
