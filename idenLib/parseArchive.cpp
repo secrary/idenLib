@@ -16,7 +16,7 @@ Lib::Lib(const fs::path& libPath)
 	rewind(this->hFile);
 	// Is it right type?
 	if (this->FileContent && memcmp(this->FileContent, IMAGE_ARCHIVE_START, IMAGE_ARCHIVE_START_SIZE) == 0)
-		this->IsRightType = true;
+		this->isLib = true;
 }
 
 void Lib::MemberHeader(__in IMAGE_ARCHIVE_MEMBER_HEADER& archiveMemberHdr)
@@ -38,8 +38,18 @@ _Success_(return)
 
 bool Lib::GetSignature(LPVOID pUserContext)
 {
-	if (!this->IsRightType)
-		return false;
+	if (!this->isLib)
+	{
+		// is it a .obj file?
+		auto fHdr = reinterpret_cast<PIMAGE_FILE_HEADER>(this->FileContent);
+		if (fHdr->Machine == 0x14C)
+		{
+			// process .obj file
+			DisasmObjCode(*fHdr, this->FileContent, pUserContext);
+			return true;
+		}
+
+	}
 	IMAGE_ARCHIVE_MEMBER_HEADER imArcMemHdr{};
 	MemberHeader(imArcMemHdr);
 	if (memcmp(imArcMemHdr.Name, IMAGE_ARCHIVE_LINKER_MEMBER, 16) != 0)
@@ -116,10 +126,16 @@ Lib::~Lib()
 		fclose(hFile);
 }
 
-void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* currentObjectStart, LPVOID pUserContext) const
+void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* currentObjectStart, LPVOID pUserContext)
 {
 	const auto userContext = static_cast<PUSER_CONTEXT>(pUserContext);
 	auto saveLoc = ftell(this->hFile);
+
+	if (!this->isLib)
+	{
+		this->MemberSeekBase = 0;
+	}
+
 	fseek(this->hFile, this->MemberSeekBase +
 		imageFileHdr.PointerToSymbolTable, SEEK_SET);
 	if (!imageFileHdr.NumberOfSymbols)

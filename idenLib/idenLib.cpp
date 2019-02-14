@@ -165,7 +165,7 @@ void ProcessArchiveFile(const fs::path& sPath)
 
 void ProcessFile(const fs::path& sPath)
 {
-	if (sPath.extension().compare(".lib") == 0) // Should we check signature instead?
+	if (sPath.extension().compare(".lib") == 0 || sPath.extension().compare(".obj") == 0)
 	{
 		ProcessArchiveFile(sPath);
 	}
