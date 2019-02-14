@@ -9,11 +9,11 @@ namespace fs = std::filesystem;
 
 class Lib
 {
-	bool IsRightType = false;
+	bool isLib = false;
 	SIZE_T MemberSeekBase = IMAGE_ARCHIVE_START_SIZE;
 	SIZE_T MemberSize = 0;
 	void MemberHeader(__in IMAGE_ARCHIVE_MEMBER_HEADER& archiveMemberHdr);
-	void DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* currentObjectStart, LPVOID pUserContext) const;
+	void DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* currentObjectStart, LPVOID pUserContext);
 public:
 	byte* FileContent = nullptr;
 	FILE* hFile = nullptr;
