@@ -2,7 +2,7 @@
 
 When analyzing malware or 3rd party software, it's challenging to identify statically linked libraries and to understand what a function from the library is doing.
 
-[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib` files.
+[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib`/`.obj` files.
 
 [`idenLib.dp32`/`idenLib.dp64`](https://github.com/secrary/idenLibX) is a [`x32dbg`/`x64dbg`](https://x64dbg.com) plugin to identify library functions.
 
@@ -13,7 +13,7 @@ When analyzing malware or 3rd party software, it's challenging to identify stati
 
 ## How does idenLib.exe generate signatures?
 
-1. Parses input file(`.lib` file) to get a list of function addresses and function names.
+1. Parses input file(`.lib`/`.obj` file) to get a list of function addresses and function names.
 2. Gets the last opcode from each instruction
 
 ![sig](https://user-images.githubusercontent.com/16405698/52433535-35442500-2b05-11e9-92a2-7ed0dfb319ab.png)
@@ -44,12 +44,13 @@ Inside of a signature (it's compressed):
 
 ![ida_boost_2](https://user-images.githubusercontent.com/16405698/52433540-35dcbb80-2b05-11e9-9dd3-9bb44d678ea5.gif)
 
+## NOTE:
 Supports [`x86`](https://en.wikipedia.org/wiki/X86) and [`AMD64/x86-64`](https://en.wikipedia.org/wiki/X86-64) architectures.
 
 ## Useful links:
 - Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features);
 
 ## Credits
-- Disassembly powered by [Zydis](https://zydis.re)
-- Compression/Decompression by [zstd](https://github.com/facebook/zstd)
+- Disassembly by [Zydis](https://zydis.re)
+- Compression by [zstd](https://github.com/facebook/zstd)
 - Icon by [freepik](https://www.flaticon.com/authors/freepik)

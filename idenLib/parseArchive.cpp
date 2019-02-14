@@ -40,7 +40,7 @@ bool Lib::GetSignature(LPVOID pUserContext)
 {
 	if (!this->isLib) // process .obj file
 	{
-		// is it a .obj file?
+		// Is it a .obj file?
 		const auto fHdr = reinterpret_cast<PIMAGE_FILE_HEADER>(this->FileContent);
 		if (fHdr->Machine == 0x14C || fHdr->Machine == 0x8664)
 		{
@@ -50,6 +50,8 @@ bool Lib::GetSignature(LPVOID pUserContext)
 		}
 		return false;
 	}
+
+	// process .lib file
 	IMAGE_ARCHIVE_MEMBER_HEADER imArcMemHdr{};
 	MemberHeader(imArcMemHdr);
 	if (memcmp(imArcMemHdr.Name, IMAGE_ARCHIVE_LINKER_MEMBER, 16) != 0)
