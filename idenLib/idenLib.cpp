@@ -91,14 +91,22 @@ void ProcessArchiveFile(const fs::path& sPath)
 	if (lib.isx64)
 	{
 		sigExt = L".sig64";
+		subFolder = L"x64";
 	}
 	else
 	{
 		sigExt = L".sig";
+		subFolder = L"x86";
 	}
 
 	const auto fileName = sPath.filename();
 	auto sigPath{symExPath};
+	sigPath += L"\\";
+	sigPath += subFolder;
+	if (!fs::exists(sigPath))
+	{
+		fs::create_directories(sigPath);
+	}
 	sigPath += L"\\";
 	sigPath += fileName;
 	sigPath += sigExt;

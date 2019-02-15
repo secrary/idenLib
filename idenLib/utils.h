@@ -32,6 +32,7 @@ namespace fs = std::filesystem;
 
 
 inline auto sigExt = L".sig";
+inline auto subFolder = L"x86";
 inline auto zydisMode = ZYDIS_MACHINE_MODE_LEGACY_32;
 inline auto zydisWidth = ZYDIS_ADDRESS_WIDTH_32;
 
