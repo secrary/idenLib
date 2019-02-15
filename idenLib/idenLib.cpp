@@ -80,11 +80,28 @@ void ProcessArchiveFile(const fs::path& sPath)
 	Lib lib{sPath};
 	USER_CONTEXT userContext{};
 
+	userContext.Dirty = false;
+
+	if (!lib.GetSignature(&userContext) || !userContext.Dirty)
+	{
+		printf("[idenLib - INFO] No SIG file for : %s\n", sPath.string().c_str());
+		return;
+	}
+
+	if (lib.isx64)
+	{
+		sigExt = L".sig64";
+	}
+	else
+	{
+		sigExt = L".sig";
+	}
+
 	const auto fileName = sPath.filename();
 	auto sigPath{symExPath};
 	sigPath += L"\\";
 	sigPath += fileName;
-	sigPath += SIG_EXT;
+	sigPath += sigExt;
 
 	if (exists(sigPath))
 	{
@@ -109,7 +126,11 @@ void ProcessArchiveFile(const fs::path& sPath)
 			}
 			// vec[0] opcode
 			// vec[1] name
-			userContext.funcSignature[vec[0]] = vec[1];
+			if (userContext.funcSignature.find(vec[0]) == userContext.funcSignature.end())
+			{
+				userContext.funcSignature[vec[0]] = vec[1];
+			}
+
 			line = strtok_s(nullptr, seps, &next_token);
 		}
 
@@ -117,48 +138,40 @@ void ProcessArchiveFile(const fs::path& sPath)
 		delete[] decompressedData;
 	}
 
-	userContext.Dirty = false;
-
-	if (lib.GetSignature(&userContext) && userContext.Dirty)
+	fs::path sigPathTmp = sigPath;
+	sigPathTmp += L".tmp";
+	if (exists(sigPathTmp))
 	{
-		fs::path sigPathTmp = sigPath;
-		sigPathTmp += L".tmp";
-		if (exists(sigPathTmp))
-		{
-			fs::remove(sigPathTmp);
-		}
+		fs::remove(sigPathTmp);
+	}
 
-		FILE* hFile = nullptr;
-		fopen_s(&hFile, sigPathTmp.string().c_str(), "wb");
-		if (!hFile)
-		{
-			fwprintf(stderr, L"[idenLib - FAILED] failed to create sig file: %s\n", sigPath.c_str());
-			return;
-		}
-		for (const auto& n : userContext.funcSignature)
-		{
-			const auto bothSize = n.first.size() + n.second.size() + 3; // space + \n + 0x00
-			const auto opcodesName = new CHAR[bothSize];
-			sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
-			fwrite(opcodesName, bothSize - 1, 1, hFile); // -1 without 0x00
-		}
-		fclose(hFile);
+	FILE* hFile = nullptr;
+	fopen_s(&hFile, sigPathTmp.string().c_str(), "wb");
+	if (!hFile)
+	{
+		fwprintf(stderr, L"[idenLib - FAILED] failed to create sig file: %s\n", sigPath.c_str());
+		return;
+	}
+	for (const auto& n : userContext.funcSignature)
+	{
+		const auto bothSize = n.first.size() + n.second.size() + 3; // space + \n + 0x00
+		const auto opcodesName = new CHAR[bothSize];
+		sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
+		fwrite(opcodesName, bothSize - 1, 1, hFile); // -1 without 0x00
+	}
+	fclose(hFile);
 
-		if (CompressFile(sigPathTmp, sigPath))
-		{
-			wprintf(L"[idenLib] Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
-		}
-		else
-		{
-			fwprintf(stderr, L"[idenLib - FAILED] compression failed\n");
-		}
-		if (exists(sigPathTmp))
-			fs::remove(sigPathTmp);
+	if (CompressFile(sigPathTmp, sigPath))
+	{
+		wprintf(L"[idenLib] Created SIG file: %s based on %s\n", sigPath.c_str(), sPath.c_str());
 	}
 	else
 	{
-		printf("[idenLib - INFO] No SIG file for : %s (maybe no functions)\n", sPath.string().c_str());
+		fwprintf(stderr, L"[idenLib - FAILED] compression failed\n");
 	}
+	if (exists(sigPathTmp))
+		fs::remove(sigPathTmp);
+
 
 	if (exists(sigPath) && is_empty(sigPath))
 	{

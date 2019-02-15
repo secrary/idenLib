@@ -15,6 +15,7 @@ class Lib
 	void MemberHeader(__in IMAGE_ARCHIVE_MEMBER_HEADER& archiveMemberHdr);
 	void DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* currentObjectStart, LPVOID pUserContext);
 public:
+	bool isx64 = false;
 	byte* FileContent = nullptr;
 	FILE* hFile = nullptr;
 	SIZE_T FileLength = 0;

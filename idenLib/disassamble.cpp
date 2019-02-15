@@ -6,7 +6,7 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 {
 	ZydisDecoder decoder;
 
-	ZydisDecoderInit(&decoder, ZYDIS_MODE, ZYDIS_ADDRESS_WIDTH);
+	ZydisDecoderInit(&decoder, zydisMode, zydisWidth);
 
 	ZyanUSize offset = 0;
 	ZydisDecodedInstruction instruction;

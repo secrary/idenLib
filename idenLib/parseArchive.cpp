@@ -42,8 +42,9 @@ bool Lib::GetSignature(LPVOID pUserContext)
 	{
 		// Is it a .obj file?
 		const auto fHdr = reinterpret_cast<PIMAGE_FILE_HEADER>(this->FileContent);
-		if (fHdr->Machine == 0x14C || fHdr->Machine == 0x8664)
+		if (fHdr->Machine == Arch86 || fHdr->Machine == Arch64)
 		{
+			this->isx64 = fHdr->Machine == Arch64;
 			// process .obj file
 			DisasmObjCode(*fHdr, this->FileContent, pUserContext);
 			return true;
@@ -111,8 +112,9 @@ bool Lib::GetSignature(LPVOID pUserContext)
 		const auto currentObjectStart = this->FileContent + ftell(this->hFile);
 		IMAGE_FILE_HEADER imageFileHdr{};
 		fread(&imageFileHdr, sizeof(IMAGE_FILE_HEADER), 1, this->hFile);
-		if (!imageFileHdr.Machine) // should we check?
+		if (imageFileHdr.Machine != Arch86 && imageFileHdr.Machine != Arch64)
 			continue;
+		this->isx64 = imageFileHdr.Machine == Arch64;
 		DisasmObjCode(imageFileHdr, currentObjectStart, pUserContext);
 	}
 	while (this->MemberSeekBase + this->MemberSize + 1 < this->FileLength);
@@ -131,6 +133,17 @@ Lib::~Lib()
 
 void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* currentObjectStart, LPVOID pUserContext)
 {
+	if (this->isx64)
+	{
+		zydisMode = ZYDIS_MACHINE_MODE_LONG_64;
+		zydisWidth = ZYDIS_ADDRESS_WIDTH_64;
+	}
+	else
+	{
+		zydisMode = ZYDIS_MACHINE_MODE_LEGACY_32;
+		zydisWidth = ZYDIS_ADDRESS_WIDTH_32;
+	}
+
 	const auto userContext = static_cast<PUSER_CONTEXT>(pUserContext);
 	auto saveLoc = ftell(this->hFile);
 

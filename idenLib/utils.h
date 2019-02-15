@@ -30,16 +30,10 @@ namespace fs = std::filesystem;
 #define MIN_FUNC_SIZE 0x20
 #define MAX_FUNC_SIZE 0x100
 
-#ifdef _WIN64
-#define ZYDIS_ADDRESS_WIDTH ZYDIS_ADDRESS_WIDTH_64
-#define ZYDIS_MODE ZYDIS_MACHINE_MODE_LONG_64
-#define SIG_EXT L".sig64"
-#else
-#define ZYDIS_ADDRESS_WIDTH ZYDIS_ADDRESS_WIDTH_32
-#define ZYDIS_MODE ZYDIS_MACHINE_MODE_LEGACY_32
-#define SIG_EXT L".sig"
-#endif
 
+inline auto sigExt = L".sig";
+inline auto zydisMode = ZYDIS_MACHINE_MODE_LEGACY_32;
+inline auto zydisWidth = ZYDIS_ADDRESS_WIDTH_32;
 
 inline fs::path symExPath{"SymEx"};
 inline fs::path pdbDirName{"symbols"};
@@ -52,3 +46,9 @@ typedef struct _USER_CONTEXT
 	std::unordered_map<std::string, std::string> funcSignature;
 	bool Dirty;
 } USER_CONTEXT, *PUSER_CONTEXT;
+
+enum
+{
+	Arch86 = 0x14C,
+	Arch64 = 0x8664
+};
