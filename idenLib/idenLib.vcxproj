@@ -72,19 +72,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VSInstallDir)\DIA SDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VSInstallDir)\DIA SDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VSInstallDir)\DIA SDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)..\idenLib\dependencies\zydis\msvc;$(ProjectDir)..\idenLib\dependencies\zydis\include;$(ProjectDir)..\idenLib\dependencies\zydis\dependencies\zycore\include;$(ProjectDir)..\idenLib\dependencies\zstd\lib;$(VSInstallDir)\DIA SDK\include;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -180,12 +180,14 @@
     <ClCompile Include="disassamble.cpp" />
     <ClCompile Include="idenLib.cpp" />
     <ClCompile Include="parseArchive.cpp" />
+    <ClCompile Include="pdb.cpp" />
     <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="compression.h" />
     <ClInclude Include="disassamble.h" />
     <ClInclude Include="parseArchive.h" />
+    <ClInclude Include="pdb.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
