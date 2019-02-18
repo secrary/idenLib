@@ -5,7 +5,7 @@ bool LoadDataFromPdb(const wchar_t* szFilename, IDiaDataSource** ppSource, IDiaS
 bool GetMainSignature(__in IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo);
 void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo);
 void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo);
-bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo);
+void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo);
 
 bool ProcessMainSignature(const fs::path& pePath)
 {
@@ -134,7 +134,7 @@ bool ProcessMainSignature(const fs::path& pePath)
 
 	if (CompressFile(sigPathTmp, mainSigPath))
 	{
-		wprintf(L"[idenLib] Created SIG file: %s based on %s\n", mainSigPath.c_str(), mainSigPath.c_str());
+		wprintf(L"[idenLib] Created SIG file: %s based on %s\n", mainSigPath.c_str(), pePath.c_str());
 	}
 	else
 	{
@@ -312,7 +312,7 @@ void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
 	GetCallerOpcodes(PBYTE(mainInfo.baseAddress + dwRva), length, mainInfo);
 }
 
-bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo)
+void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo)
 {
 	ZydisDecoder decoder;
 
@@ -323,10 +323,14 @@ bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 	auto detected = false;
 
 	auto cSize = length * 2;
+	if (cSize < 3) // CHAR opcode[3];
+	{
+		return;
+	}
 	auto opcodesBuf = static_cast<PCHAR>(malloc(cSize)); // // we need to resize the buffer
 	if (!opcodesBuf)
 	{
-		return false;
+		return;
 	}
 	SIZE_T counter = 0;
 	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
@@ -357,7 +361,7 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 
 	auto tmpPtr = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
 	if (!tmpPtr)
-		return false;
+		return;
 	opcodesBuf = tmpPtr;
 
 	if (detected)
@@ -368,9 +372,7 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 		mainInfo.opcodes_index = mainOpcodes;
 	}
 
-
 	delete[] opcodesBuf;
-	return true;
 }
 
 void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
