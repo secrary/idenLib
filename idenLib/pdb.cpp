@@ -1,14 +1,16 @@
 #include "pdb.h"
 
-bool LoadDataFromPdb(const wchar_t* szFilename, IDiaDataSource** ppSource, IDiaSession** ppSession, IDiaSymbol** ppGlobal);
+bool LoadDataFromPdb(const wchar_t* szFilename, IDiaDataSource** ppSource, IDiaSession** ppSession,
+                     IDiaSymbol** ppGlobal);
 bool GetMainSignature(__in IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo);
 void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo);
 void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo);
 bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo);
 
-bool ProcessMainSignature(const fs::path& pePath, char* entryName)
+bool ProcessMainSignature(const fs::path& pePath)
 {
-	auto loadAddress = reinterpret_cast<DWORD_PTR>(LoadLibraryEx(pePath.c_str(), nullptr, LOAD_LIBRARY_AS_IMAGE_RESOURCE));
+	auto loadAddress = reinterpret_cast<DWORD_PTR>(LoadLibraryEx(pePath.c_str(), nullptr,
+	                                                             LOAD_LIBRARY_AS_IMAGE_RESOURCE));
 	if (INVALID_HANDLE_VALUE == reinterpret_cast<HANDLE>(loadAddress))
 	{
 		printf("Failed to map....");
@@ -29,7 +31,6 @@ bool ProcessMainSignature(const fs::path& pePath, char* entryName)
 
 	MAIN_SIG_INFO mainInfo;
 	mainInfo.Dirty = false;
-	mainInfo.EntryName = entryName;
 	mainInfo.baseAddress = loadAddress;
 
 	if (isx64)
@@ -38,8 +39,8 @@ bool ProcessMainSignature(const fs::path& pePath, char* entryName)
 		subFolder = L"x64";
 		zydisMode = ZYDIS_MACHINE_MODE_LONG_64;
 		zydisWidth = ZYDIS_ADDRESS_WIDTH_64;
-
-	}else
+	}
+	else
 	{
 		entryPointSignatures = L"EntryPointSignatures.sig";
 		subFolder = L"x86";
@@ -59,8 +60,93 @@ bool ProcessMainSignature(const fs::path& pePath, char* entryName)
 
 	if (!GetMainSignature(g_pGlobalSymbol, mainInfo))
 	{
-		fwprintf(stderr, L"[idenLib - FAILED] GetMainSignature failed\n");
+		//fwprintf(stderr, L"[idenLib - FAILED] GetMainSignature failed\n");
 		return false;
+	}
+
+	fs::path mainSigPath = symExPath;
+	mainSigPath += L"\\";
+	mainSigPath += subFolder;
+	if (!exists(mainSigPath))
+	{
+		create_directories(mainSigPath);
+	}
+	mainSigPath += L"\\";
+	mainSigPath += entryPointSignatures;
+
+	std::unordered_map<std::string, std::string> mainSigs;
+
+	if (exists(mainSigPath))
+	{
+		PBYTE decompressedData{};
+		if (!DecompressFile(mainSigPath, decompressedData) || !decompressedData)
+		{
+			fwprintf_s(stderr, L"[idenLib - FAILED] failed to decompress the file: %s\n", mainSigPath.c_str());
+			return false;
+		}
+		char seps[] = "\n";
+		char* next_token = nullptr;
+		char* line = strtok_s(reinterpret_cast<char*>(decompressedData), seps, &next_token);
+		while (line != nullptr)
+		{
+			std::vector<std::string> vec{};
+			Split(line, vec);
+			if (vec.size() != 2)
+			{
+				fwprintf(stderr, L"[idenLib - FAILED] SIG file contains a malformed data, SIG path: %s\n",
+				         mainSigPath.c_str());
+				return false;
+			}
+			// vec[0] opcode
+			// vec[1] name
+			mainSigs[vec[0]] = vec[1];
+
+			line = strtok_s(nullptr, seps, &next_token);
+		}
+
+
+		delete[] decompressedData;
+	}
+	mainSigs[mainInfo.opcodes_index] = mainInfo.EntryName;
+
+	fs::path sigPathTmp = mainSigPath;
+	sigPathTmp += L".tmp";
+	if (exists(sigPathTmp))
+	{
+		fs::remove(sigPathTmp);
+	}
+
+	FILE* hFile = nullptr;
+	fopen_s(&hFile, sigPathTmp.string().c_str(), "wb");
+	if (!hFile)
+	{
+		fwprintf(stderr, L"[idenLib - FAILED] failed to create sig file: %s\n", mainSigPath.c_str());
+		return false;
+	}
+	for (const auto& n : mainSigs)
+	{
+		const auto bothSize = n.first.size() + n.second.size() + 3; // space + \n + 0x00
+		const auto opcodesName = new CHAR[bothSize];
+		sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
+		fwrite(opcodesName, bothSize - 1, 1, hFile); // -1 without 0x00
+	}
+	fclose(hFile);
+
+	if (CompressFile(sigPathTmp, mainSigPath))
+	{
+		wprintf(L"[idenLib] Created SIG file: %s based on %s\n", mainSigPath.c_str(), mainSigPath.c_str());
+	}
+	else
+	{
+		fwprintf(stderr, L"[idenLib - FAILED] compression failed\n");
+	}
+	if (exists(sigPathTmp))
+		fs::remove(sigPathTmp);
+
+
+	if (exists(mainSigPath) && is_empty(mainSigPath))
+	{
+		DeleteFile(mainSigPath.c_str());
 	}
 
 
@@ -77,10 +163,10 @@ bool LoadDataFromPdb(
 
 	// Obtain access to the provider
 	auto hr = CoCreateInstance(__uuidof(DiaSource),
-		nullptr,
-		CLSCTX_INPROC_SERVER,
-		__uuidof(IDiaDataSource),
-		reinterpret_cast<void **>(ppSource));
+	                           nullptr,
+	                           CLSCTX_INPROC_SERVER,
+	                           __uuidof(IDiaDataSource),
+	                           reinterpret_cast<void **>(ppSource));
 
 	if (FAILED(hr))
 	{
@@ -109,7 +195,8 @@ bool LoadDataFromPdb(
 	{
 		// Open and prepare the debug data associated with the .exe/.dll file
 		hr = (*ppSource)->loadDataForExe(szFilename, nullptr, nullptr);
-		if (hr != S_OK) {
+		if (hr != S_OK)
+		{
 			wprintf(L"loadDataForExe failed - HRESULT = %x\n", hr);
 			return false;
 		}
@@ -140,7 +227,7 @@ bool LoadDataFromPdb(
 	return true;
 }
 
-bool GetMainSignature(IDiaSymbol * pGlobal, MAIN_SIG_INFO& mainInfo)
+bool GetMainSignature(IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo)
 {
 	IDiaEnumSymbols* pEnumSymbols;
 	IDiaSymbol* pSymbol;
@@ -174,7 +261,7 @@ bool GetMainSignature(IDiaSymbol * pGlobal, MAIN_SIG_INFO& mainInfo)
 		fwprintf(stderr, L"[IdenLib - FAILED] failed to find main RVA\n");
 		return false;
 	}
-	// instruction.mnemonic == ZYDIS_MNEMONIC_CALL
+
 	if (SUCCEEDED(pGlobal->findChildren(SymTagFunction, NULL, nsNone, &pEnumSymbols)))
 	{
 		while (!mainInfo.Dirty && SUCCEEDED(pEnumSymbols->Next(1, &pSymbol, &celt)) && (celt == 1))
@@ -188,7 +275,7 @@ bool GetMainSignature(IDiaSymbol * pGlobal, MAIN_SIG_INFO& mainInfo)
 	}
 
 
-	return true;
+	return mainInfo.Dirty;
 }
 
 void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
@@ -222,14 +309,10 @@ void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
 
 	// 444444...44_123 main
 	// opcodes_mainInstrCount mainName
-	if (GetCallerOpcodes(PBYTE(mainInfo.baseAddress + dwRva), length, mainInfo) && mainInfo.Dirty)
-	{
-		printf("Xxx\n");
-	}
-
+	GetCallerOpcodes(PBYTE(mainInfo.baseAddress + dwRva), length, mainInfo);
 }
 
-bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO & mainInfo)
+bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo)
 {
 	ZydisDecoder decoder;
 
@@ -237,6 +320,7 @@ bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO & mai
 
 	ZyanUSize offset = 0;
 	ZydisDecodedInstruction instruction;
+	auto detected = false;
 
 	auto cSize = length * 2;
 	auto opcodesBuf = static_cast<PCHAR>(malloc(cSize)); // // we need to resize the buffer
@@ -245,36 +329,48 @@ bool GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO & mai
 		return false;
 	}
 	SIZE_T counter = 0;
-	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
+	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
 		&instruction)))
 	{
-
-		if (instruction.mnemonic == ZYDIS_MNEMONIC_CALL)
-		{
-			auto callRVA = instruction.operands[0];
-			ZyanU64 callVa;
-			if (callRVA.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && callRVA.imm.is_relative && ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(&instruction, &callRVA, callRVA.imm.value.u, &callVa)))
-			{
-				printf("%llx", callVa);
-			}
-		}
-
 		CHAR opcode[3];
 		sprintf_s(opcode, "%02x", instruction.opcode);
 
 		memcpy_s(opcodesBuf + counter, cSize - counter, opcode, sizeof(opcode));
 		counter += 2;
 
+		if (instruction.mnemonic == ZYDIS_MNEMONIC_CALL)
+		{
+			auto& callOperand = instruction.operands[0];
+			ZyanU64 callVa{};
+			auto instr = reinterpret_cast<ZyanU64>(funcVa + offset);
+			if (callOperand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && callOperand.imm.is_relative &&				ZYAN_SUCCESS(
+ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
+			{
+				if (callVa == mainInfo.mainVA)
+				{
+					detected = true;
+				}
+			}
+		}
 		offset += instruction.length;
 	}
+
 	auto tmpPtr = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
 	if (!tmpPtr)
 		return false;
 	opcodesBuf = tmpPtr;
 
+	if (detected)
+	{
+		mainInfo.Dirty = true;
+		std::string mainOpcodes{opcodesBuf};
+		mainOpcodes += "_" + std::to_string(counter / 2);
+		mainInfo.opcodes_index = mainOpcodes;
+	}
 
 
-	return counter != 0;
+	delete[] opcodesBuf;
+	return true;
 }
 
 void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
@@ -303,7 +399,7 @@ void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
 	BSTR bstrName;
 	if (pSymbol->get_name(&bstrName) == S_OK)
 	{
-		const std::wstring name{ bstrName };
+		const std::wstring name{bstrName};
 
 		// mainCRTStartup(or wmainCRTStartup) 			An application that uses / SUBSYSTEM:CONSOLE; calls main(or wmain)
 		// WinMainCRTStartup(or wWinMainCRTStartup) 	An application that uses / SUBSYSTEM:WINDOWS; calls WinMain(or wWinMain), which must be defined to use __stdcall
@@ -313,9 +409,9 @@ void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
 		if (name == L"main" || name == L"wmain" || name == L"WinMain" || name == L"wWinMain")
 		{
 			mainInfo.mainVA = dwRva + mainInfo.baseAddress;
+			mainInfo.EntryName = std::string{name.begin(), name.end()};
 		}
 
 		SysFreeString(bstrName);
 	}
-
 }
