@@ -30,6 +30,9 @@
     <ClCompile Include="compression.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="disassamble.h">
@@ -42,6 +45,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="compression.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pdb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

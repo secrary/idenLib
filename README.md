@@ -2,7 +2,7 @@
 
 When analyzing malware or 3rd party software, it's challenging to identify statically linked libraries and to understand what a function from the library is doing.
 
-[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib`/`.obj` files.
+[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib`/`.obj`/`.exe`/`.dll` files.
 
 [`idenLib.dp32`/`idenLib.dp64`](https://github.com/secrary/idenLibX) is a [`x32dbg`/`x64dbg`](https://x64dbg.com) plugin to identify library functions.
 
@@ -27,6 +27,10 @@ If you execute `idenLib.exe` several times with different version of the `.lib` 
 Inside of a signature (it's compressed):
 ![signature](https://user-images.githubusercontent.com/16405698/52490971-e9a18200-2bbd-11e9-8d29-e85a71826c8f.png)
 
+## Usage:
+- Generate library signatures: `idenLib.exe /path/to/file` or `idenLib.exe /path/to/directory`
+- Generate `main` function signature: `idenLib.exe /path/to/pe -getmain`
+
 ## Generating library signatures
 
 ![lib](https://user-images.githubusercontent.com/16405698/52433541-35dcbb80-2b05-11e9-918a-6d39afc5de91.gif)
@@ -44,13 +48,27 @@ Inside of a signature (it's compressed):
 
 ![ida_boost_2](https://user-images.githubusercontent.com/16405698/52433540-35dcbb80-2b05-11e9-9dd3-9bb44d678ea5.gif)
 
-## NOTE:
-Supports [`x86`](https://en.wikipedia.org/wiki/X86) and [`AMD64/x86-64`](https://en.wikipedia.org/wiki/X86-64) architectures.
+## Generating `main` function signature:
+If you want to generate a signature for `main` function compiled using `MSVC 14` you need to create a  `hello world` application with the corresponding compiler and use the application as input for `idenLib`
+
+![getmain](https://user-images.githubusercontent.com/16405698/53035354-234f7400-346d-11e9-9d56-b05ff0309ca6.gif)
+
+`main` function signature files are `EntryPointSignatures.sig` and `EntryPointSignatures.sig64`
+
+![IDAProMain](https://user-images.githubusercontent.com/16405698/53022517-3c4b2b80-3453-11e9-9e0a-5d1421f9c8f3.gif)
+
+## Notes Regarding to `main` Function Signatures
+
+- At this moment, only `IDA Pro` plugin supports finding `main` functions
+
+- `main` function finding is not stable since it depends on function recognition by `IDA Pro` or `x64dbg`
+
+- `idenLib` uses the `DIA APIs` to browse debug information stored in a PDB file. To run `idenLib` with `-getmain` parameter you will need to ensure that the msdia140.dll (found in `Microsoft Visual Studio\2017\Community\DIA SDK\bin`) is registered as a COM component, by invoking regsvr32.exe on the dll. 
 
 ## Useful links:
-- Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features);
+- Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features)
 
 ## Credits
-- Disassembly by [Zydis](https://zydis.re)
+- Disassembly by [zydis](https://zydis.re)
 - Compression by [zstd](https://github.com/facebook/zstd)
 - Icon by [freepik](https://www.flaticon.com/authors/freepik)

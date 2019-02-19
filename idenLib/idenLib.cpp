@@ -16,13 +16,13 @@ int main(int argc, char* argv[])
 		Usage: \n\
 		./idenLib.exe /path/to/sample\n\
 		./idenLib.exe /path/to/dir\n\
-		./idenLib.exe /path/to/dir filename\
+		./idenLib.exe /path/to/dir filename\n\n\
+		./idenLib.exe /path/to/sample -getmain\
 		\n");
 		return STATUS_UNSUCCESSFUL;
 	}
 
 	fs::path sPath{argv[1]};
-
 
 	if (!exists(sPath))
 	{
@@ -34,6 +34,31 @@ int main(int argc, char* argv[])
 	{
 		create_directory(symExPath);
 	}
+
+
+	if (argc == 3) // -getmain
+	{
+		if (!strncmp(argv[2], "-getmain", strlen("-getmain")))
+		{
+			if (S_OK != CoInitialize(nullptr))
+			{
+				printf("CoInitialize failed\n");
+				return STATUS_UNSUCCESSFUL;
+			}
+
+			if (is_regular_file(sPath) && (sPath.extension().compare(".exe") == 0 || sPath.extension().compare(".dll")
+				== 0))
+			{
+				if (!ProcessMainSignature(sPath)) // argv[3] is name of the entry point (wmain, main, etc)
+				{
+					fprintf(stderr, "[IdenLib - FAILED] Failed to parse .pdb file\n");
+					return STATUS_UNSUCCESSFUL;
+				}
+				return STATUS_SUCCESS;
+			}
+		}
+	}
+
 
 	if (is_regular_file(sPath))
 	{
@@ -103,9 +128,9 @@ void ProcessArchiveFile(const fs::path& sPath)
 	auto sigPath{symExPath};
 	sigPath += L"\\";
 	sigPath += subFolder;
-	if (!fs::exists(sigPath))
+	if (!exists(sigPath))
 	{
-		fs::create_directories(sigPath);
+		create_directories(sigPath);
 	}
 	sigPath += L"\\";
 	sigPath += fileName;

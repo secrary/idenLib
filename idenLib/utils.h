@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Windows.h>
+#include <dia2.h>
+
 #include <cstdio>
 #include <string>
 #include <fstream>
@@ -15,6 +17,7 @@
 #include "disassamble.h"
 #include "parseArchive.h"
 #include "compression.h"
+#include "pdb.h"
 
 #include "Zydis/Zydis.h"
 
@@ -30,7 +33,7 @@ namespace fs = std::filesystem;
 #define MIN_FUNC_SIZE 0x20
 #define MAX_FUNC_SIZE 0x100
 
-
+inline auto entryPointSignatures = L"EntryPointSignatures.sig";
 inline auto sigExt = L".sig";
 inline auto subFolder = L"x86";
 inline auto zydisMode = ZYDIS_MACHINE_MODE_LEGACY_32;
@@ -38,7 +41,6 @@ inline auto zydisWidth = ZYDIS_ADDRESS_WIDTH_32;
 
 inline fs::path symExPath{"SymEx"};
 inline fs::path pdbDirName{"symbols"};
-
 
 void Split(__in const std::string& str, __out std::vector<std::string>& cont);
 
