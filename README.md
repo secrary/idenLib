@@ -58,6 +58,7 @@ If you want to generate a signature for `main` function compiled using `MSVC 14`
 ![IDAProMain](https://user-images.githubusercontent.com/16405698/53022517-3c4b2b80-3453-11e9-9e0a-5d1421f9c8f3.gif)
 
 ## Notes Regarding to `main` Function Signatures
+- Not ready to use, yet!
 
 - At this moment, only `IDA Pro` plugin supports finding `main` functions
 
