@@ -64,6 +64,12 @@ bool ProcessMainSignature(const fs::path& pePath)
 		return false;
 	}
 
+	if (!mainInfo.Dirty)
+	{
+		fwprintf(stderr, L"[idenLib - INFO] Can not generate a signature: %s\n", pePath.c_str());
+		return true;
+	}
+
 	fs::path mainSigPath = symExPath;
 	mainSigPath += L"\\";
 	mainSigPath += subFolder;
@@ -322,6 +328,35 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 	ZydisDecodedInstruction instruction;
 	auto detected = false;
 
+	size_t callInstr = 0;
+	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
+		&instruction)))
+	{
+		if (instruction.mnemonic == ZYDIS_MNEMONIC_CALL)
+		{
+			auto& callOperand = instruction.operands[0];
+			ZyanU64 callVa{};
+			auto instr = reinterpret_cast<ZyanU64>(funcVa + offset);
+			if (callOperand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && callOperand.imm.is_relative &&				ZYAN_SUCCESS(
+ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
+			{
+				if (callVa == mainInfo.mainVA)
+				{
+					detected = true;
+					callInstr = offset;
+					break;
+				}
+			}
+		}
+		offset += instruction.length;
+	}
+
+	if (!detected)
+	{
+		return;
+	}
+
+	offset = 0;
 	auto cSize = length * 2;
 	if (cSize < 3) // CHAR opcode[3];
 	{
@@ -334,7 +369,7 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 	}
 	SIZE_T counter = 0;
 	auto maxLength = length > MAX_FUNC_SIZE ? MAX_FUNC_SIZE : length;
-	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
+	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
 		&instruction)))
 	{
 		CHAR opcode[3];
@@ -350,37 +385,12 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 		return;
 	opcodesBuf = tmpPtr;
 
-	size_t callInstr = 0;
-	offset = 0;
-	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
-		&instruction)))
-	{
-		if (instruction.mnemonic == ZYDIS_MNEMONIC_CALL)
-		{
-			auto& callOperand = instruction.operands[0];
-			ZyanU64 callVa{};
-			auto instr = reinterpret_cast<ZyanU64>(funcVa + offset);
-			if (callOperand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && callOperand.imm.is_relative &&				ZYAN_SUCCESS(
-ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
-			{
-				if (!detected && callVa == mainInfo.mainVA)
-				{
-					detected = true;
-					callInstr = offset;
-				}
-			}
-		}
-		offset += instruction.length;
-	}
 
+	mainInfo.Dirty = true;
+	std::string mainOpcodes{opcodesBuf};
+	mainOpcodes += "_" + std::to_string(callInstr);
+	mainInfo.opcodes_index = mainOpcodes;
 
-	if (detected)
-	{
-		mainInfo.Dirty = true;
-		std::string mainOpcodes{opcodesBuf};
-		mainOpcodes += "_" + std::to_string(callInstr);
-		mainInfo.opcodes_index = mainOpcodes;
-	}
 
 	delete[] opcodesBuf;
 }

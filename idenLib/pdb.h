@@ -11,6 +11,6 @@ typedef struct _MAIN_SIG_INFO
 	bool Dirty;
 	std::string EntryName;
 	std::string opcodes_index;
-	INT64 baseAddress;
-	INT64 mainVA;
+	DWORD_PTR baseAddress;
+	DWORD_PTR mainVA;
 } MAIN_SIG_INFO, *P_MAIN_SIG_INFO;
