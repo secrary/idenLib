@@ -29,7 +29,7 @@ Inside of a signature (it's compressed):
 
 ## Usage:
 - Generate library signatures: `idenLib.exe /path/to/file` or `idenLib.exe /path/to/directory`
-- Generate `main` function signature: `idenLib.exe /path/to/pe`
+- Generate `main` function signature: `idenLib.exe /path/to/pe -getmain`
 
 ## Generating library signatures
 
@@ -51,24 +51,24 @@ Inside of a signature (it's compressed):
 ## Generating `main` function signature:
 If you want to generate a signature for `main` function compiled using `MSVC 14` you need to create a  `hello world` application with the corresponding compiler and use the application as input for `idenLib`
 
-[gif]
+![getmain](https://user-images.githubusercontent.com/16405698/53035354-234f7400-346d-11e9-9d56-b05ff0309ca6.gif)
 
 `main` function signature files are `EntryPointSignatures.sig` and `EntryPointSignatures.sig64`
 
 ![IDAProMain](https://user-images.githubusercontent.com/16405698/53022517-3c4b2b80-3453-11e9-9e0a-5d1421f9c8f3.gif)
 
-## TODO
-At this moment, only `IDA Pro` plugin supports finding `main` functions
+## Notes Regarding to `main` Function Signatures
 
-## NOTE
-`idenLib` uses the `DIA APIs` to browse debug information stored in a PDB file. To run `idenLib` with `-getmain` parameter you will need to ensure that the msdia140.dll (found in `Microsoft Visual Studio\2017\Community\DIA SDK\bin`) is registered as a COM component, by invoking regsvr32.exe on the dll. 
+- At this moment, only `IDA Pro` plugin supports finding `main` functions
 
-Supports [`x86`](https://en.wikipedia.org/wiki/X86) and [`AMD64/x86-64`](https://en.wikipedia.org/wiki/X86-64) architectures.
+- `main` function finding is not stable since it depends on function recognition by `IDA Pro` or `x64dbg`
+
+- `idenLib` uses the `DIA APIs` to browse debug information stored in a PDB file. To run `idenLib` with `-getmain` parameter you will need to ensure that the msdia140.dll (found in `Microsoft Visual Studio\2017\Community\DIA SDK\bin`) is registered as a COM component, by invoking regsvr32.exe on the dll. 
 
 ## Useful links:
-- Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features);
+- Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features)
 
 ## Credits
-- Disassembly by [Zydis](https://zydis.re)
+- Disassembly by [zydis](https://zydis.re)
 - Compression by [zstd](https://github.com/facebook/zstd)
 - Icon by [freepik](https://www.flaticon.com/authors/freepik)
