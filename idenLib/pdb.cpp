@@ -333,7 +333,8 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 		return;
 	}
 	SIZE_T counter = 0;
-	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
+	auto maxLength = length > MAX_FUNC_SIZE ? MAX_FUNC_SIZE : length;
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
 		&instruction)))
 	{
 		CHAR opcode[3];
@@ -342,6 +343,18 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 		memcpy_s(opcodesBuf + counter, cSize - counter, opcode, sizeof(opcode));
 		counter += 2;
 
+		offset += instruction.length;
+	}
+	auto tmpPtr = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
+	if (!tmpPtr)
+		return;
+	opcodesBuf = tmpPtr;
+
+	size_t callInstr = 0;
+	offset = 0;
+	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, length - offset,
+		&instruction)))
+	{
 		if (instruction.mnemonic == ZYDIS_MNEMONIC_CALL)
 		{
 			auto& callOperand = instruction.operands[0];
@@ -350,25 +363,22 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 			if (callOperand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && callOperand.imm.is_relative &&				ZYAN_SUCCESS(
 ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 			{
-				if (callVa == mainInfo.mainVA)
+				if (!detected && callVa == mainInfo.mainVA)
 				{
 					detected = true;
+					callInstr = offset;
 				}
 			}
 		}
 		offset += instruction.length;
 	}
 
-	auto tmpPtr = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
-	if (!tmpPtr)
-		return;
-	opcodesBuf = tmpPtr;
 
 	if (detected)
 	{
 		mainInfo.Dirty = true;
 		std::string mainOpcodes{opcodesBuf};
-		mainOpcodes += "_" + std::to_string(counter / 2);
+		mainOpcodes += "_" + std::to_string(callInstr);
 		mainInfo.opcodes_index = mainOpcodes;
 	}
 
