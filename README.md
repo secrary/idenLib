@@ -2,7 +2,7 @@
 
 When analyzing malware or 3rd party software, it's challenging to identify statically linked libraries and to understand what a function from the library is doing.
 
-[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib`/`.obj`/`.exe`/`.dll` files.
+[`idenLib.exe`](https://github.com/secrary/idenLib) is a tool for generating library signatures from `.lib`/`.obj`/`.exe` files.
 
 [`idenLib.dp32`/`idenLib.dp64`](https://github.com/secrary/idenLibX) is a [`x32dbg`/`x64dbg`](https://x64dbg.com) plugin to identify library functions.
 
@@ -57,12 +57,9 @@ If you want to generate a signature for `main` function compiled using `MSVC 14`
 
 ![IDAProMain](https://user-images.githubusercontent.com/16405698/53022517-3c4b2b80-3453-11e9-9e0a-5d1421f9c8f3.gif)
 
+![x64dbg_main](https://user-images.githubusercontent.com/16405698/53122678-14d98900-354f-11e9-88a3-e6f0f6b7d7bf.gif)
+
 ## Notes Regarding to `main` Function Signatures
-- Not ready to use, yet!
-
-- At this moment, only `IDA Pro` plugin supports finding `main` functions
-
-- `main` function finding is not stable since it depends on function recognition by `IDA Pro` or `x64dbg`
 
 - `idenLib` uses the `DIA APIs` to browse debug information stored in a PDB file. To run `idenLib` with `-getmain` parameter you will need to ensure that the msdia140.dll (found in `Microsoft Visual Studio\2017\Community\DIA SDK\bin`) is registered as a COM component, by invoking regsvr32.exe on the dll. 
 
