@@ -39,6 +39,8 @@ bool ProcessMainSignature(const fs::path& pePath)
 		subFolder = L"x64";
 		zydisMode = ZYDIS_MACHINE_MODE_LONG_64;
 		zydisWidth = ZYDIS_ADDRESS_WIDTH_64;
+		auto ntHeaderCurrent = reinterpret_cast<PIMAGE_NT_HEADERS64>(ntHeader);
+		mainInfo.EntryAddress = static_cast<DWORD_PTR>(ntHeaderCurrent->OptionalHeader.AddressOfEntryPoint);
 	}
 	else
 	{
@@ -46,6 +48,8 @@ bool ProcessMainSignature(const fs::path& pePath)
 		subFolder = L"x86";
 		zydisMode = ZYDIS_MACHINE_MODE_LEGACY_32;
 		zydisWidth = ZYDIS_ADDRESS_WIDTH_32;
+		auto ntHeaderCurrent = static_cast<PIMAGE_NT_HEADERS32>(ntHeader);
+		mainInfo.EntryAddress = static_cast<DWORD_PTR>(ntHeaderCurrent->OptionalHeader.AddressOfEntryPoint);
 	}
 
 	IDiaDataSource* g_pDiaDataSource;
@@ -369,7 +373,7 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 	}
 	SIZE_T counter = 0;
 	auto maxLength = length > MAX_FUNC_SIZE ? MAX_FUNC_SIZE : length;
-	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
+	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
 		&instruction)))
 	{
 		CHAR opcode[3];
@@ -387,8 +391,11 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 
 
 	mainInfo.Dirty = true;
+	// Two ways to index a main function location
 	std::string mainOpcodes{opcodesBuf};
-	mainOpcodes += "_" + std::to_string(callInstr);
+	mainOpcodes += "_" + std::to_string(callInstr); // _123 => call "main" offset = func + 123
+	signed long distanceFromEntry = reinterpret_cast<DWORD_PTR>(funcVa) + callInstr - (mainInfo.EntryAddress + mainInfo.baseAddress);
+	mainOpcodes += "!" + std::to_string(distanceFromEntry); // !567 => call "main" offset = EP + 567
 	mainInfo.opcodes_index = mainOpcodes;
 
 

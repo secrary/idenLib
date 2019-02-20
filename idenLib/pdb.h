@@ -13,4 +13,5 @@ typedef struct _MAIN_SIG_INFO
 	std::string opcodes_index;
 	DWORD_PTR baseAddress;
 	DWORD_PTR mainVA;
+	DWORD_PTR EntryAddress;
 } MAIN_SIG_INFO, *P_MAIN_SIG_INFO;
