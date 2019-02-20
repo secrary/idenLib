@@ -68,6 +68,6 @@ If you want to generate a signature for `main` function compiled using `MSVC 14`
 
 ## Third-party
 - Zydis ([MIT License](https://github.com/zyantific/zydis/blob/master/LICENSE))
-- Zstandard ([BSD License](https://github.com/facebook/zstd))
+- Zstandard ([BSD License](https://github.com/facebook/zstd/blob/dev/LICENSE))
 
 - Icon by [freepik](https://www.flaticon.com/authors/freepik)
