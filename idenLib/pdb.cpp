@@ -7,6 +7,8 @@ void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo);
 void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo);
 void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo);
 
+_Success_(return)
+
 bool ProcessMainSignature(const fs::path& pePath)
 {
 	auto loadAddress = reinterpret_cast<DWORD_PTR>(LoadLibraryEx(pePath.c_str(), nullptr,
@@ -94,7 +96,7 @@ bool ProcessMainSignature(const fs::path& pePath)
 			fwprintf_s(stderr, L"[idenLib - FAILED] failed to decompress the file: %s\n", mainSigPath.c_str());
 			return false;
 		}
-		char seps[] = "\n";
+		const char seps[] = "\n";
 		char* next_token = nullptr;
 		char* line = strtok_s(reinterpret_cast<char*>(decompressedData), seps, &next_token);
 		while (line != nullptr)
@@ -169,7 +171,7 @@ bool LoadDataFromPdb(
 	IDiaSession** ppSession,
 	IDiaSymbol** ppGlobal)
 {
-	TCHAR wszExt[MAX_PATH];
+	TCHAR wszExt[MAX_PATH]{};
 
 	// Obtain access to the provider
 	auto hr = CoCreateInstance(__uuidof(DiaSource),
@@ -237,7 +239,7 @@ bool LoadDataFromPdb(
 	return true;
 }
 
-bool GetMainSignature(IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo)
+bool GetMainSignature(__in IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo)
 {
 	IDiaEnumSymbols* pEnumSymbols;
 	IDiaSymbol* pSymbol;
@@ -246,7 +248,7 @@ bool GetMainSignature(IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo)
 
 	// find RVA of a main function
 	mainInfo.mainVA = 0;
-	if (SUCCEEDED(pGlobal->findChildren(SymTagFunction, NULL, nsNone, &pEnumSymbols)))
+	if (SUCCEEDED(pGlobal->findChildren(SymTagFunction, nullptr, nsNone, &pEnumSymbols)))
 	{
 		while (!mainInfo.mainVA && SUCCEEDED(pEnumSymbols->Next(1, &pSymbol, &celt)) && (celt == 1))
 		{
@@ -272,7 +274,7 @@ bool GetMainSignature(IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo)
 		return false;
 	}
 
-	if (SUCCEEDED(pGlobal->findChildren(SymTagFunction, NULL, nsNone, &pEnumSymbols)))
+	if (SUCCEEDED(pGlobal->findChildren(SymTagFunction, nullptr, nsNone, &pEnumSymbols)))
 	{
 		while (!mainInfo.Dirty && SUCCEEDED(pEnumSymbols->Next(1, &pSymbol, &celt)) && (celt == 1))
 		{
@@ -319,7 +321,7 @@ void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
 
 	// 444444...44_123 main
 	// opcodes_mainInstrCount mainName
-	GetCallerOpcodes(PBYTE(mainInfo.baseAddress + dwRva), length, mainInfo);
+	GetCallerOpcodes(reinterpret_cast<PBYTE>(mainInfo.baseAddress + dwRva), length, mainInfo);
 }
 
 void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo)
@@ -340,7 +342,7 @@ void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& main
 		{
 			auto& callOperand = instruction.operands[0];
 			ZyanU64 callVa{};
-			auto instr = reinterpret_cast<ZyanU64>(funcVa + offset);
+			auto instr = reinterpret_cast<ZyanU64>(funcVa) + offset;
 			if (callOperand.type == ZYDIS_OPERAND_TYPE_IMMEDIATE && callOperand.imm.is_relative &&				ZYAN_SUCCESS(
 ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 			{
@@ -372,8 +374,8 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 		return;
 	}
 	SIZE_T counter = 0;
-	auto maxLength = length > MAX_FUNC_SIZE ? MAX_FUNC_SIZE : length;
-	while (ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
+	const auto maxLength = length > MAX_FUNC_SIZE ? MAX_FUNC_SIZE : length;
+	while (		ZYAN_SUCCESS(ZydisDecoderDecodeBuffer(&decoder, funcVa + offset, maxLength - offset,
 		&instruction)))
 	{
 		CHAR opcode[3];
@@ -394,12 +396,13 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 	// Two ways to index a main function location
 	std::string mainOpcodes{opcodesBuf};
 	mainOpcodes += "_" + std::to_string(callInstr); // _123 => call "main" offset = func + 123
-	signed long distanceFromEntry = reinterpret_cast<DWORD_PTR>(funcVa) + callInstr - (mainInfo.EntryAddress + mainInfo.baseAddress);
+	signed long distanceFromEntry = reinterpret_cast<DWORD_PTR>(funcVa) + callInstr - (mainInfo.EntryAddress + mainInfo.
+		baseAddress);
 	mainOpcodes += "!" + std::to_string(distanceFromEntry); // !567 => call "main" offset = EP + 567
 	mainInfo.opcodes_index = mainOpcodes;
 
 
-	delete[] opcodesBuf;
+	free(opcodesBuf);
 }
 
 void GetMainRva(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
