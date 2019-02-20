@@ -66,7 +66,8 @@ If you want to generate a signature for `main` function compiled using `MSVC 14`
 ## Useful links:
 - Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features)
 
-## Credits
-- Disassembly by [zydis](https://zydis.re)
-- Compression by [zstd](https://github.com/facebook/zstd)
+## Third-party
+- Zydis ([MIT License](https://github.com/zyantific/zydis/blob/master/LICENSE))
+- Zstandard ([BSD License](https://github.com/facebook/zstd))
+
 - Icon by [freepik](https://www.flaticon.com/authors/freepik)
