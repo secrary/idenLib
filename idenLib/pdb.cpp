@@ -50,7 +50,7 @@ bool ProcessMainSignature(const fs::path& pePath)
 		subFolder = L"x86";
 		zydisMode = ZYDIS_MACHINE_MODE_LEGACY_32;
 		zydisWidth = ZYDIS_ADDRESS_WIDTH_32;
-		auto ntHeaderCurrent = static_cast<PIMAGE_NT_HEADERS32>(ntHeader);
+		auto ntHeaderCurrent = reinterpret_cast<PIMAGE_NT_HEADERS32>(ntHeader);
 		mainInfo.EntryAddress = static_cast<DWORD_PTR>(ntHeaderCurrent->OptionalHeader.AddressOfEntryPoint);
 	}
 

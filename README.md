@@ -63,6 +63,14 @@ If you want to generate a signature for `main` function compiled using `MSVC 14`
 
 - `idenLib` uses the `DIA APIs` to browse debug information stored in a PDB file. To run `idenLib` with `-getmain` parameter you will need to ensure that the msdia140.dll (found in `Microsoft Visual Studio\2017\Community\DIA SDK\bin`) is registered as a COM component, by invoking regsvr32.exe on the dll. 
 
+
+## Applying Signatures
+
+There are two ways to apply signatures, exact match and using [`Jaccard index`](https://en.wikipedia.org/wiki/Jaccard_index)
+
+![x32dbg_jaccard](https://user-images.githubusercontent.com/16405698/53361361-80489f80-392f-11e9-9339-36b719394cbe.png)
+
+
 ## Useful links:
 - Detailed information about [`C Run-Time Libraries (CRT)`](https://docs.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features)
 
