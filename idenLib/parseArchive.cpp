@@ -214,12 +214,13 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					}
 
 					PCHAR opcodesBuf = nullptr;
-
-					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf) && opcodesBuf)
+					size_t branches{};
+					if (GetOpcodeBuf(code, static_cast<SIZE_T>(codeSize), opcodesBuf, true, branches) && opcodesBuf)
 					{
 						std::string cOpcodes{opcodesBuf};
-
-						userContext->funcSignature[cOpcodes] = sName;
+						cOpcodes += "+";
+						cOpcodes += std::to_string(branches); // opcodes+numberOfBranches
+						userContext->funcSignature[cOpcodes] = sName;;
 						userContext->Dirty = true;
 
 						free(opcodesBuf);

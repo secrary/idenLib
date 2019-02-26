@@ -1,8 +1,7 @@
 #include "disassamble.h"
 
 _Success_(return)
-
-bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf)
+bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf, __in bool countBranches, __out size_t& cBranches)
 {
 	ZydisDecoder decoder;
 
@@ -10,6 +9,11 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 
 	ZyanUSize offset = 0;
 	ZydisDecodedInstruction instruction;
+
+	if (countBranches)
+	{
+		cBranches = 0;
+	}
 
 	auto cSize = length * 2;
 	opcodesBuf = static_cast<PCHAR>(malloc(cSize)); // // we need to resize the buffer
@@ -26,6 +30,13 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 
 		memcpy_s(opcodesBuf + counter, cSize - counter, opcode, sizeof(opcode));
 		counter += 2;
+
+		if (countBranches)
+		{
+			if (instruction.meta.branch_type != ZYDIS_BRANCH_TYPE_NONE) {
+				cBranches++;
+			}
+		}
 
 		offset += instruction.length;
 	}
