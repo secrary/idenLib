@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 
 	if (argc == 3) // -getmain
 	{
-		if (!strncmp(argv[2], "-getmain", strlen("-getmain")))
+		if (strncmp(argv[2], "-getmain", strlen("-getmain")) == 0)
 		{
 			if (S_OK != CoInitialize(nullptr))
 			{

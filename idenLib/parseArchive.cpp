@@ -10,13 +10,17 @@ Lib::Lib(const fs::path& libPath)
 	rewind(this->hFile);
 	// file content
 	this->FileContent = static_cast<byte*>(malloc(this->FileLength));
-	if (!this->FileContent)
+	if (this->FileContent == nullptr)
+	{
 		return;
+	}
 	fread(this->FileContent, this->FileLength, 1, this->hFile);
 	rewind(this->hFile);
 	// Is it right type?
-	if (this->FileContent && memcmp(this->FileContent, IMAGE_ARCHIVE_START, IMAGE_ARCHIVE_START_SIZE) == 0)
+	if ((this->FileContent != nullptr) && memcmp(this->FileContent, IMAGE_ARCHIVE_START, IMAGE_ARCHIVE_START_SIZE) == 0)
+	{
 		this->isLib = true;
+	}
 }
 
 void Lib::MemberHeader(__in IMAGE_ARCHIVE_MEMBER_HEADER& archiveMemberHdr)
@@ -76,7 +80,7 @@ bool Lib::GetSignature(LPVOID pUserContext)
 
 	IMAGE_ARCHIVE_MEMBER_HEADER imArcMemHdrPos{};
 	fread(&imArcMemHdrPos, sizeof(IMAGE_ARCHIVE_MEMBER_HEADER), 1, this->hFile);
-	if (!memcmp(imArcMemHdrPos.Name, IMAGE_ARCHIVE_LINKER_MEMBER, 16))
+	if (memcmp(imArcMemHdrPos.Name, IMAGE_ARCHIVE_LINKER_MEMBER, 16) == 0)
 	{
 		// second link member - skip
 		MemberHeader(imArcMemHdr);
@@ -96,7 +100,7 @@ bool Lib::GetSignature(LPVOID pUserContext)
 	newMember = EVEN_BYTE_ALIGN(this->MemberSeekBase + this->MemberSize);
 	fseek(this->hFile, newMember, SEEK_SET);
 	fread(&imArcMemHdrPos, sizeof(IMAGE_ARCHIVE_MEMBER_HEADER), 1, this->hFile);
-	if (!memcmp(imArcMemHdrPos.Name, IMAGE_ARCHIVE_LONGNAMES_MEMBER, 16))
+	if (memcmp(imArcMemHdrPos.Name, IMAGE_ARCHIVE_LONGNAMES_MEMBER, 16) == 0)
 	{
 		MemberHeader(imArcMemHdr);
 		// strings - skip
@@ -113,7 +117,9 @@ bool Lib::GetSignature(LPVOID pUserContext)
 		IMAGE_FILE_HEADER imageFileHdr{};
 		fread(&imageFileHdr, sizeof(IMAGE_FILE_HEADER), 1, this->hFile);
 		if (imageFileHdr.Machine != Arch86 && imageFileHdr.Machine != Arch64)
+		{
 			continue;
+		}
 		this->isx64 = imageFileHdr.Machine == Arch64;
 		DisasmObjCode(imageFileHdr, currentObjectStart, pUserContext);
 	}
@@ -125,8 +131,10 @@ bool Lib::GetSignature(LPVOID pUserContext)
 
 Lib::~Lib()
 {
-	if (FileContent)
+	if (FileContent != nullptr)
+	{
 		free(FileContent);
+	}
 	if (hFile)
 		fclose(hFile);
 }
@@ -154,22 +162,30 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 
 	fseek(this->hFile, this->MemberSeekBase +
 	      imageFileHdr.PointerToSymbolTable, SEEK_SET);
-	if (!imageFileHdr.NumberOfSymbols)
+	if (imageFileHdr.NumberOfSymbols == 0u)
+	{
 		return;
+	}
 	const auto symbols = static_cast<PIMAGE_SYMBOL>(malloc(imageFileHdr.NumberOfSymbols * sizeof(IMAGE_SYMBOL)));
-	if (!symbols)
+	if (symbols == nullptr)
+	{
 		return;
+	}
 	fread(symbols, imageFileHdr.NumberOfSymbols, sizeof(IMAGE_SYMBOL), this->hFile);
 	fseek(this->hFile, saveLoc, SEEK_SET);
 
 	const auto startOfSectionHeaders = this->MemberSeekBase + sizeof(IMAGE_FILE_HEADER) + imageFileHdr.
 		SizeOfOptionalHeader;
 	const DWORD cbSections = imageFileHdr.NumberOfSections * sizeof(IMAGE_SECTION_HEADER);
-	if (!cbSections)
+	if (cbSections == 0u)
+	{
 		return;
+	}
 	const auto sectionHeaders = static_cast<PIMAGE_SECTION_HEADER>(malloc(cbSections));
-	if (!sectionHeaders)
+	if (sectionHeaders == nullptr)
+	{
 		return;
+	}
 	fseek(this->hFile, startOfSectionHeaders, SEEK_SET); // set after optional header
 	fread(sectionHeaders, sizeof(IMAGE_SECTION_HEADER), imageFileHdr.NumberOfSections, this->hFile);
 
@@ -181,8 +197,8 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 		const auto imageSectionHeader = sectionHeaders[i - 1];
 		const auto cbVirtual = imageSectionHeader.SizeOfRawData;
 
-		if (imageSectionHeader.PointerToRawData != 0 && cbVirtual != 0 && (
-			imageSectionHeader.Characteristics & IMAGE_SCN_CNT_CODE))
+		if (imageSectionHeader.PointerToRawData != 0 && cbVirtual != 0 && ((
+			imageSectionHeader.Characteristics & IMAGE_SCN_CNT_CODE) != 0u))
 		{
 			// disassemble code
 			const auto numberOfSymbols = imageFileHdr.NumberOfSymbols;
@@ -194,7 +210,7 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 						symbols[j].StorageClass == IMAGE_SYM_CLASS_LABEL) && ISFCN(symbols[j].Type)
 				) // current section and function
 				{
-					const auto fnName = symbols[j].N.Name.Short
+					const auto fnName = symbols[j].N.Name.Short != 0u
 						                    ? reinterpret_cast<char*>(symbols[j].N.ShortName)
 						                    : (stringTable + symbols[j].N.Name.Long);
 
@@ -207,7 +223,9 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 					const auto code = currentObjectStart + imageSectionHeader.PointerToRawData + symbols[j].Value;
 					auto codeSize = imageSectionHeader.SizeOfRawData - symbols[j].Value;
 					if (codeSize < MIN_FUNC_SIZE)
+					{
 						continue;
+					}
 					if (codeSize > MAX_FUNC_SIZE)
 					{
 						codeSize = MAX_FUNC_SIZE;
@@ -220,7 +238,7 @@ void Lib::DisasmObjCode(__in IMAGE_FILE_HEADER& imageFileHdr, __in byte* current
 						std::string cOpcodes{opcodesBuf};
 						cOpcodes += "+";
 						cOpcodes += std::to_string(branches); // opcodes+numberOfBranches
-						userContext->funcSignature[cOpcodes] = sName;;
+						userContext->funcSignature[cOpcodes] = sName;
 						userContext->Dirty = true;
 
 						free(opcodesBuf);

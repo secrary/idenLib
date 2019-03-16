@@ -1,7 +1,9 @@
 #include "disassamble.h"
 
 _Success_(return)
-bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf, __in bool countBranches, __out size_t& cBranches)
+
+bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf, __in bool countBranches,
+                  __out size_t& cBranches)
 {
 	ZydisDecoder decoder;
 
@@ -17,7 +19,7 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 
 	auto cSize = length * 2;
 	opcodesBuf = static_cast<PCHAR>(malloc(cSize)); // // we need to resize the buffer
-	if (!opcodesBuf)
+	if (opcodesBuf == nullptr)
 	{
 		return false;
 	}
@@ -33,7 +35,8 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 
 		if (countBranches)
 		{
-			if (instruction.meta.branch_type != ZYDIS_BRANCH_TYPE_NONE) {
+			if (instruction.meta.branch_type != ZYDIS_BRANCH_TYPE_NONE)
+			{
 				cBranches++;
 			}
 		}
@@ -41,8 +44,10 @@ bool GetOpcodeBuf(__in PBYTE funcVa, __in SIZE_T length, __out PCHAR& opcodesBuf
 		offset += instruction.length;
 	}
 	auto tmpPtr = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
-	if (!tmpPtr)
+	if (tmpPtr == nullptr)
+	{
 		return false;
+	}
 	opcodesBuf = tmpPtr;
 
 	return counter != 0;

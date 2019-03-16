@@ -189,7 +189,7 @@ bool LoadDataFromPdb(
 
 	_wsplitpath_s(szFilename, nullptr, 0, nullptr, 0, nullptr, 0, wszExt, MAX_PATH);
 
-	if (!_wcsicmp(wszExt, L".pdb"))
+	if (_wcsicmp(wszExt, L".pdb") == 0)
 	{
 		// Open and prepare a program database (.pdb) file as a debug data source
 
@@ -268,7 +268,7 @@ bool GetMainSignature(__in IDiaSymbol* pGlobal, MAIN_SIG_INFO& mainInfo)
 	}
 
 	// find a function which calls main
-	if (!mainInfo.mainVA)
+	if (mainInfo.mainVA == 0u)
 	{
 		fwprintf(stderr, L"[IdenLib - FAILED] failed to find main RVA\n");
 		return false;
@@ -324,7 +324,7 @@ void FindCallerSignature(__in IDiaSymbol* pSymbol, MAIN_SIG_INFO& mainInfo)
 	GetCallerOpcodes(reinterpret_cast<PBYTE>(mainInfo.baseAddress + dwRva), length, mainInfo);
 }
 
-void GetCallerOpcodes(__in PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo)
+void GetCallerOpcodes(__in const PBYTE funcVa, __in SIZE_T length, MAIN_SIG_INFO& mainInfo)
 {
 	ZydisDecoder decoder;
 
@@ -369,7 +369,7 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 		return;
 	}
 	auto opcodesBuf = static_cast<PCHAR>(malloc(cSize)); // // we need to resize the buffer
-	if (!opcodesBuf)
+	if (opcodesBuf == nullptr)
 	{
 		return;
 	}
@@ -387,8 +387,10 @@ ZydisCalcAbsoluteAddress(&instruction, &callOperand, instr, &callVa)))
 		offset += instruction.length;
 	}
 	auto tmpPtr = static_cast<PCHAR>(realloc(opcodesBuf, counter + 1)); // +1 for 0x00
-	if (!tmpPtr)
+	if (tmpPtr == nullptr)
+	{
 		return;
+	}
 	opcodesBuf = tmpPtr;
 
 

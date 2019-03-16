@@ -71,7 +71,7 @@ bool DecompressFile(fs::path& sigPath, PBYTE& decompressedData)
 	rewind(hFile);
 	// read data
 	const auto cBuff = new BYTE[cSize];
-	if (!cBuff)
+	if (cBuff == nullptr)
 	{
 		fclose(hFile);
 		return false;
@@ -96,7 +96,7 @@ bool DecompressFile(fs::path& sigPath, PBYTE& decompressedData)
 		return false;
 	}
 	decompressedData = new BYTE[rSize]; // +1 for 0x00
-	if (!decompressedData)
+	if (decompressedData == nullptr)
 	{
 		delete[] cBuff;
 		fclose(hFile);
