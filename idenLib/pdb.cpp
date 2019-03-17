@@ -141,6 +141,7 @@ bool ProcessMainSignature(const fs::path& pePath)
 		const auto opcodesName = new CHAR[bothSize];
 		sprintf_s(opcodesName, bothSize, "%s %s\n", n.first.c_str(), n.second.c_str());
 		fwrite(opcodesName, bothSize - 1, 1, hFile); // -1 without 0x00
+		delete[] opcodesName;
 	}
 	fclose(hFile);
 
